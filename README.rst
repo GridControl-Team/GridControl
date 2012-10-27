@@ -21,6 +21,12 @@ To download source and set up environment:
     Install other requirements:
     $ pip install -r requirements.txt
 
+    Create local settings:
+    $ cp gridcontrol/settings.py.sample gridcontrol/settings.py
+
+    Edit that settings file and add the secrets you need:
+    $ vim gridcontrol/settings.py
+
 
 Other Dependencies
 ==================
