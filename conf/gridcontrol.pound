@@ -2,6 +2,7 @@
 #Group "pound"
 #Control "conf/gridcontrol.poundctl"
 Daemon 0
+Alive 1
 
 ListenHTTP
     Address 127.0.0.1

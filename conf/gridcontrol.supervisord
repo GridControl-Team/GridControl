@@ -51,12 +51,20 @@ redirect_stderr=true
 stdout_logfile=run/logs/loadbalancer.log
 stopsignal=QUIT
 
-[program:gridcontrol]
-command=gunicorn_django -b 0.0.0.0:8001
+[program:gridcontrol_runserver]
+command=python manage.py runserver 0.0.0.0:8001
 autostart=true
 autorestart=true
 redirect_stderr=true
 stdout_logfile=run/logs/gridcontrol.log
+stopsignal=QUIT
+
+[program:gridcontrol_gunicorn]
+command=gunicorn_django -b 0.0.0.0:8001
+autostart=false
+autorestart=true
+redirect_stderr=true
+stdout_logfile=run/logs/gridcontrol_gunicorn.log
 stopsignal=QUIT
 
 [program:gridcontrol_celery]

@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block body_class %}frontpage{% endblock %}
 {% block content %}
-	<h1>Welcome to the frontpage</h1>
+	<h1>GridControl</h1>
+	<div>
+		<ul>
+			<li><a href="{% url socialauth_begin "github" %}">Log in with github</a></li>
+		</ul>
+	</div>
 {% endblock %}

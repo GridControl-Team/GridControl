@@ -1,0 +1,24 @@
+from settings_common import *
+
+#ADMINS = (
+# ('Your Name', 'your_email@example.com'),
+#)
+
+#MANAGERS = ADMINS
+
+#DATABASES = {
+#	'default': {
+#		'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+#		'NAME': os.path.join(ROOT, 'db.sqlite3'),											# Or path to database file if using sqlite3.
+#		'USER': '',
+#		'PASSWORD': '',
+#		'HOST': '',											# Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+#		'PORT': '',											# Set to empty string for default.
+#	}
+#}
+
+#SECRET_KEY = 'lolthisisnotmysecret'
+#BROKER_URL = 'redis://localhost:6379/0' # 0 is for celery
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#GITHUB_APP_ID = 'lolmyappid'
+#GITHUB_API_SECRET = 'lolmyapisecret'
