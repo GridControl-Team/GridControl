@@ -5,3 +5,5 @@ git+https://github.com/mrjoes/tornadio2.git
 django-celery
 south
 django-social-auth
+gunicorn
+supervisor
