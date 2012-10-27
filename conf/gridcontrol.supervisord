@@ -42,6 +42,15 @@ serverurl=unix://run/supervisor.sock ; use a unix:// URL  for a unix socket
 ;prompt=mysupervisor         ; cmd line prompt (default "supervisor")
 ;history_file=~/.sc_history  ; use readline history if available
 
+[program:loadbalancer]
+command=pound -f conf/gridcontrol.pound -p run/pound.pid
+process_name=pound
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=run/logs/loadbalancer.log
+stopsignal=QUIT
+
 [program:gridcontrol]
 command=gunicorn_django -b 0.0.0.0:8001
 autostart=true

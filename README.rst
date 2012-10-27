@@ -26,23 +26,16 @@ Other Dependencies
 ==================
 
 The test server can live with python's built-in sqlite for the Django ORM,
-but the game itself requires redis.  So grab redis however you need and run
-it on the default port.
+but the game itself requires redis, and the integrated dev environment requires
+the pound loadbalancer.  So grab redis and pound however you need and run redis
+it on the default port (supervisord will take care of pound)
 
 Dev Environment
 ===============
 
 ::
     
-    Run dev server:
-    $ python manage.py runserver 0.0.0.0:8000
-
-    Run celery:
-    $ i forget
-
-    Run tornado:
-    $ blah
-
-    (maybe replace this with supervisor?)
+    supervisord method:
+    $ ./runserver.sh
 
 

@@ -1,0 +1,25 @@
+#User "pound"
+#Group "pound"
+#Control "conf/gridcontrol.poundctl"
+Daemon 0
+
+ListenHTTP
+    Address 127.0.0.1
+    Port 8000
+End
+
+Service
+		URL "/tornado/.*"
+    BackEnd
+        Address 127.0.0.1
+        Port    8002
+    End
+End
+
+Service
+    BackEnd
+        Address 127.0.0.1
+        Port    8001
+    End
+    
+End
