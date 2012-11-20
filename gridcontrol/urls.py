@@ -5,8 +5,9 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 		url(r'^$', 'gridcontrol.content.views.home', name='home'),
-		# url(r'^gridcontrol/', include('gridcontrol.foo.urls')),
-		# url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+		url(r'^logged-in/$', 'gridcontrol.content.views.logged_in', name='logged_in'),
+		url(r'^account/$', 'gridcontrol.content.views.account', name='account'),
+		url(r'^account/logout/$', 'gridcontrol.content.views.account_logout', name='logout'),
 		url(r'', include('social_auth.urls')),
 		url(r'^admin/', include(admin.site.urls)),
 )
