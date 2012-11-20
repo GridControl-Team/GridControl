@@ -122,6 +122,7 @@ INSTALLED_APPS = (
 		'djcelery',
 		'social_auth',
 		'gridcontrol.content',
+		'gridcontrol.engine',
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -164,15 +165,15 @@ LOGGING = {
 
 from celery.schedules import crontab
 CELERYBEAT_SCHEDULE = {
-	#"daily": {
-	#	"task": "gridcontrol.project.tasks.some_task",
-	#	"schedule" : crontab(minute='*/1'),
-	#	"args": None,
-	#},
+	"game_tick": {
+		"task": "gridcontrol.engine.tick_all_users",
+		"schedule" : crontab(minute='*/1'),
+		"args": None,
+	},
 }
 
 CELERY_TASK_PUBLISH_RETRY_POLICY = {
-	'max_retires': None,
+	'max_retries': None,
 	'interval_start': 60 * 5,
 	'interval_step': 60,
 	'interval_max': 60 * 30,

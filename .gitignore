@@ -3,3 +3,4 @@
 run/
 gridcontrol/settings.py
 *.sqlite3
+celerybeat-schedule
