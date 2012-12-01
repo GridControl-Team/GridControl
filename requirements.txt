@@ -8,3 +8,4 @@ south
 django-social-auth
 gunicorn
 supervisor
+requests
