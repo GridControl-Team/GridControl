@@ -5,8 +5,8 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth import logout
-
 from django.contrib.auth.decorators import login_required
+from gridcontrol.gist_retriever import GistRetriever
 
 def home(request):
 	ctx = {}
@@ -25,5 +25,7 @@ def account_logout(request):
 
 @login_required
 def account(request):
-	ctx = {}
+	gist_retriever = GistRetriever(request.user.username)
+	gists = gist_retriever.get_gist_list()
+	ctx = {"gists": gists}
 	return render_to_response("account/home.html", ctx, RequestContext(request))
