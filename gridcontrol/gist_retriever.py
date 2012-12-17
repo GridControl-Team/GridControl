@@ -13,5 +13,11 @@ class GistRetriever:
 
 		gist_response = requests.get("https://api.github.com/users/%s/gists" % self.user)
 		gist_json = gist_response.json
-		gists = [(gist_map['created_at'], gist_map['description'], gist_map['files']) for gist_map in gist_json]
+		gists = []
+		for gist_map in gist_json:
+			gists.append({'id': gist_map['id'], 'description': gist_map['description'], 'files': gist_map['files']})
 		return gists
+
+	def get_file_text(self, raw_url):
+		file_text = requests.get(raw_url).text
+		return file_text

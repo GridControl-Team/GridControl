@@ -9,19 +9,19 @@
 			<table>
 				<thead>
 					<tr>
-						<th>Created On</th>
+						<th>ID</th>
 						<th>Description</th>
 						<th>Files</th>
 					</tr>
 				</thead>
 				<tbody>
-				{% for datestamp, description, files in gists %}
+				{% for gist in gists %}
 					<tr>
-						<td>{{ datestamp }}</td>
-						<td>{{ description }}</td>
+						<td>{{ gist.id }}</td>
+						<td>{{ gist.description }}</td>
 						<td>
-							{% for filename, file_data in files.items %}
-								<a href="{{file_data.raw_url}}">{{filename}}</a>&nbsp;
+							{% for filename, file_data in gist.files.items %}
+								<a href="{% url gist_viewer gist_id=gist.id %}">{{filename}}</a>&nbsp;
 							{% endfor %}
 						</td>
 					</tr>
