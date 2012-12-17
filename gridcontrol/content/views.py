@@ -8,6 +8,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
+from gridcontrol.engine.tasks import register_login
 
 def home(request):
 	ctx = {}
@@ -17,6 +18,7 @@ def home(request):
 def logged_in(request):
 	"""Have no idea yet how to tell django-social-auth that logged-in
 	is something else. Remove this dumb redirect when this is figured out"""
+	register_login(user)
 	return redirect(reverse('account'))
 
 @login_required
@@ -26,11 +28,18 @@ def account_logout(request):
 
 @login_required
 def account(request):
-	gist_retriever = GistRetriever(request.user.username)
+	user = request.user
+	ctx = {}
+	return render_to_response("account/home.html", ctx, RequestContext(request))
+
+@login_required
+def account_gists(request):
+	user = request.user
+	gist_retriever = GistRetriever(user.username)
 	gists = gist_retriever.get_gist_list()
 	ctx = {"gists": gists}
 	request.session["gists"] = gists
-	return render_to_response("account/home.html", ctx, RequestContext(request))
+	return render_to_response("account/gists.html", ctx, RequestContext(request))
 
 @login_required
 def gist_viewer(request, gist_id=0):

@@ -5,32 +5,6 @@
 	<div>
 		<p>You're logged in as {{ user }}</p>
 		<p><a href="{% url logout %}">Log out</a></p>
-		{% if gists %}
-			<table>
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>Description</th>
-						<th>Files</th>
-					</tr>
-				</thead>
-				<tbody>
-				{% for gist in gists %}
-					<tr>
-						<td>{{ gist.id }}</td>
-						<td>{{ gist.description }}</td>
-						<td>
-							{% for filename, file_data in gist.files.items %}
-								<a href="{% url gist_viewer gist_id=gist.id %}">{{filename}}</a>&nbsp;
-							{% endfor %}
-						</td>
-					</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-		{% else %}
-			<p>No gists found!</p>
-		{% endif %}
 	</div>
 	{% block sub_content %}
 	{% endblock %}

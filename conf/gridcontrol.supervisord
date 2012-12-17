@@ -42,15 +42,6 @@ serverurl=unix://run/supervisor.sock ; use a unix:// URL  for a unix socket
 ;prompt=mysupervisor         ; cmd line prompt (default "supervisor")
 ;history_file=~/.sc_history  ; use readline history if available
 
-[program:loadbalancer]
-command=pound -f conf/gridcontrol.pound -p run/pound.pid
-process_name=pound
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=run/logs/loadbalancer.log
-stopsignal=QUIT
-
 [program:gridcontrol_runserver]
 command=python manage.py runserver 0.0.0.0:8001
 autostart=true
@@ -67,11 +58,23 @@ redirect_stderr=true
 stdout_logfile=run/logs/gridcontrol_gunicorn.log
 stopsignal=QUIT
 
+[program:gridcontrol_stream]
+command=python gridstream/server.py
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=run/logs/gridcontrol_stream.log
+stopsignal=QUIT
+
+
 [program:gridcontrol_celery]
 command=python manage.py celeryd -B
-autostart=false
-autorestart=false
+	--loglevel=INFO
+numprocs=1
+autostart=true
+autorestart=true
 redirect_stderr=true
 stdout_logfile=run/logs/gridcontrol_celery.log
-stopsignal=QUIT
+startsecs=10
+stopwaitsecs=600
 

@@ -49,6 +49,10 @@
 
 	GC.init = function() {
 		console.log("testing");
+		var screen = $("#grid_screen")[0];
+		if (!_.isUndefined(screen)) {
+			comm = new GC.Comm(screen);
+		}
 	};
 
 	$(function() {

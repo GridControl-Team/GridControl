@@ -184,3 +184,7 @@ BROKER_URL = 'redis://localhost:6379/0' # 0 is for celery
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 GITHUB_APP_ID = 'lolmyappid'
 GITHUB_API_SECRET = 'lolmyapisecret'
+
+ENGINE_BROKER_HOST = 'localhost'
+ENGINE_BROKER_PORT = 6379
+ENGINE_BROKER_DB = 1
