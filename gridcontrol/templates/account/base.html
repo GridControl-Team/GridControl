@@ -4,6 +4,8 @@
 	<h1>GridControl Panel</h1>
 	<div>
 		<p>You're logged in as {{ user }}</p>
+		<p>Go see your <a href="{% url account %}">Grid</a></p>
+		<p>See your <a href="{% url account_gists %}">Gists</a></p>
 		<p><a href="{% url logout %}">Log out</a></p>
 	</div>
 	{% block sub_content %}

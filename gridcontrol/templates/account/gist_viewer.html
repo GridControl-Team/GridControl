@@ -1,11 +1,7 @@
-<html>
-	<head>
-		<title>Gist Viewer</title>
-	</head>
-	<body>
-		{% for file_name, file_text in gist_texts.items %}
-			<h1>{{file_name}}</h1>
-			<pre>{{file_text}}</pre>
-		{% endfor %}
-	</body>
-</html>
+{% extends "account/base.html" %}
+{% block sub_content %}
+	{% for file_name, file_text in gist_texts.items %}
+		<h1>{{file_name}}</h1>
+		<pre>{{file_text}}</pre>
+	{% endfor %}
+{% endblock %}
