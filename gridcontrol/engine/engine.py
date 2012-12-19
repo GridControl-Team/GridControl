@@ -53,7 +53,7 @@ class GridControlEngine(object):
 			# blah stupid random walk
 			walk = tuple(random.sample([1, 1, -1, -1], 2))
 			new_loc = map(operator.add, user_hash[userid], walk)
-			for i in range(1):
+			for i in range(2):
 				if new_loc[i] < 0:
 					new_loc[i] = 16
 				elif new_loc[i] > 16:
