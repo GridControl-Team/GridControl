@@ -1,4 +1,5 @@
 import random
+import operator
 
 class GridControlEngine(object):
 	WIDTH = 16
@@ -22,7 +23,9 @@ class GridControlEngine(object):
 		self.redis.sdel("active_users", user_id)
 	
 	def init_map(self):
+		print "Clearing Map"
 		pad_bit = self.WIDTH * self.HEIGHT + 1
+		self.redis.set("resource_map", 0)
 		self.redis.setbit("resource_map", pad_bit, 0)
 		allbits = xrange(self.WIDTH * self.HEIGHT)
 		resource_bits = random.sample(allbits, 10)
@@ -39,6 +42,27 @@ class GridControlEngine(object):
 		if active_users is None:
 			return
 
+		user_hash_raw = self.redis.hgetall("users_hash")
+		user_hash = {}
+		for k, v in user_hash_raw.iteritems():
+			user_hash[k] = tuple(int(i) for i in v.split(","))
+		
 		for userid in active_users:
-			print "Tick:", userid
+			if userid not in user_hash:
+				user_hash[userid] = (5, 5)
+			# blah stupid random walk
+			walk = tuple(random.sample([1, 1, -1, -1], 2))
+			new_loc = map(operator.add, user_hash[userid], walk)
+			for i in range(1):
+				if new_loc[i] < 0:
+					new_loc[i] = 16
+				elif new_loc[i] > 16:
+					new_loc[i] = 0
+			user_hash[userid] = "{0},{1}".format(new_loc[0], new_loc[1])
+		self.redis.delete("users_hash")
+		self.redis.hmset("users_hash", user_hash)
 	
+	def emit_tick(self):
+		print "EMIT TICK"
+		i = self.redis.publish("global_tick", "tick")
+		print "received:", i

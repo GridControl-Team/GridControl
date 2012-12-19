@@ -25,10 +25,16 @@
 	};
 
 	proto.receive = function(v) {
-		utils.trace("received:", v);
 		var msg = JSON.parse(v);
 		switch (msg.type) {
+			case "map":
+				this.screen.update_map(msg.content);
+				break;
+			case "users":
+				this.screen.update_users(msg.content);
+				break;
 			default:
+				console.log("Unknown message type:");
 				console.log(msg);
 				break;
 		}

@@ -164,10 +164,13 @@ LOGGING = {
 }
 
 from celery.schedules import crontab
+from datetime import timedelta
+
 CELERYBEAT_SCHEDULE = {
 	"game_tick": {
 		"task": "gridcontrol.engine.tick_all_users",
-		"schedule" : crontab(minute='*/1'),
+		#"schedule" : crontab(minute='*/1'),
+		"schedule" : timedelta(seconds=15),
 		"args": None,
 	},
 }

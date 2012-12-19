@@ -18,8 +18,28 @@ html, body {
 }
 
 #grid_screen {
+	@GRID_WIDTH: 20px;
+	@GRID_HEIGHT: 20px;
+	@GRID_COLS: 16;
+	@GRID_ROWS: 16;
 	position: relative;
-	width: 20px * 16;
-	height: 20px * 16;
-	border: 1px solid black;
+	width: @GRID_WIDTH * @GRID_COLS;
+	height: @GRID_HEIGHT * @GRID_ROWS;
+	.grid {
+		float: left;
+		height: @GRID_WIDTH;
+		width: @GRID_WIDTH;
+		line-height: @GRID_HEIGHT;
+		text-align: center;
+		font-weight: bold;
+	}
+	.grid-resource {
+		background-color: yellow;
+	}
+	.grid-ground {
+		background-color: green;
+	}
+	.grid-user {
+		position: absolute;
+	}
 }

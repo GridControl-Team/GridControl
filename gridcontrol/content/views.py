@@ -18,6 +18,7 @@ def home(request):
 def logged_in(request):
 	"""Have no idea yet how to tell django-social-auth that logged-in
 	is something else. Remove this dumb redirect when this is figured out"""
+	user = request.user
 	register_login(user)
 	return redirect(reverse('account'))
 

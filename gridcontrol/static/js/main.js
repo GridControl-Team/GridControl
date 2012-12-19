@@ -47,11 +47,39 @@
 
 	var GC = !root.GC ? (root.GC = {}) : root.GC;
 
+	GC.Screen = function(e) {
+		this.$el = $(e);
+	};
+
+	var screen = GC.Screen.prototype;
+
+	screen.update_map = function(resource_map) {
+		console.log("Updating map");
+		this.$el.empty();
+		_.each(resource_map, function(v) {
+			if (v === 1) {
+				this.$el.append("<div class='grid grid-resource'>$</div>");
+			} else {
+				this.$el.append("<div class='grid grid-ground'>_</div>");
+			}
+		}, this);
+	};
+
+	screen.update_users = function(users) {
+		console.log("Updating users");
+		_.each(users, function(v, k) {
+			var $el = $("<div class='grid grid-user'>@</div>");
+			$el.css({"left": v[0] * 20, "top": v[1] * 20});
+			this.$el.append($el);
+		}, this);
+	};
+
+
 	GC.init = function() {
-		console.log("testing");
 		var screen = $("#grid_screen")[0];
 		if (!_.isUndefined(screen)) {
-			comm = new GC.Comm(screen);
+			var s = new GC.Screen(screen);
+			var comm = new GC.Comm(s);
 		}
 	};
 
