@@ -34,11 +34,9 @@ class StreamComm(SocketConnection):
 		print "PUSHING MAP UPDATE TO USER"
 		ba = bitarray.bitarray()
 		try:
-			ba.fromstring(val)
+			ba.frombytes(val)
 		except UnicodeDecodeError:
-			# OMG I can't figure this out
-			print "THERE WAS UNICODE ERROR WITH MAP"
-			print "WHY DOES THIS HAPPEN? :("
+			# didn't have property data here
 			return
 		rmap = map(int, ba.tolist())
 		msg = {
