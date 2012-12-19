@@ -38,7 +38,7 @@ class StreamComm(SocketConnection):
 		except UnicodeDecodeError:
 			# didn't have property data here
 			return
-		rmap = map(int, ba.tolist())
+		rmap = map(int, ba.tolist())[:16*16]
 		msg = {
 			'type': 'map',
 			'content': rmap,
