@@ -3,6 +3,8 @@
 @HEADER_TYPE: sans-serif;
 @COPY_TYPE: serif;
 
+@GUTTER: 20px;
+
 @STATIC: "static/images";
 
 html, body {
@@ -17,12 +19,25 @@ html, body {
 	.box-sizing(border-box);
 }
 
+#control_panel {
+	position: absolute;
+	top: @GUTTER;
+	right: @GUTTER;
+	padding: 10px;
+	background-color: #eee;
+	border: 1px solid #ccc;
+	p {
+		margin: 0px;
+	}
+}
+
 #grid_screen {
 	@GRID_WIDTH: 20px;
 	@GRID_HEIGHT: 20px;
 	@GRID_COLS: 16;
 	@GRID_ROWS: 16;
 	position: relative;
+	margin-left: @GUTTER;
 	width: @GRID_WIDTH * @GRID_COLS;
 	height: @GRID_HEIGHT * @GRID_ROWS;
 	.grid {
@@ -41,5 +56,6 @@ html, body {
 	}
 	.grid-user {
 		position: absolute;
+		background-color: white;
 	}
 }

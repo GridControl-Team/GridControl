@@ -53,10 +53,10 @@ class GridControlEngine(object):
 			# blah stupid random walk
 			walk = tuple(random.sample([1, 1, -1, -1], 2))
 			new_loc = map(operator.add, user_hash[userid], walk)
-			for i in range(2):
+			for i, s in enumerate([self.WIDTH, self.HEIGHT]):
 				if new_loc[i] < 0:
-					new_loc[i] = 16
-				elif new_loc[i] > 16:
+					new_loc[i] = (s - 1)
+				elif new_loc[i] > (s - 1):
 					new_loc[i] = 0
 			user_hash[userid] = "{0},{1}".format(new_loc[0], new_loc[1])
 		self.redis.delete("users_hash")
