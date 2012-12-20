@@ -15,62 +15,59 @@ class COMMAND(object):
 		if type(i) in (int, float):
 			return i
 		else:
-			return vm.reg.get(i)
+			return vm.get(i)
 
 class PUSH_COMMAND(COMMAND):
 	s = 'PUSH'
 	@classmethod
 	def run(cls, args, vm):
 		val = cls.eval(args[0], vm)
-		vm.data.append(val)
+		vm.append(val)
 
 class STORE_COMMAND(COMMAND):
 	s = 'STORE'
 	@classmethod
 	def run(cls, args, vm):
 		key = args[0]
-		val = vm.data.pop()
-		vm.reg[key] = val
+		val = vm.pop()
+		vm.store(key, val)
 
 class GREATER_COMMAND(COMMAND):
 	s = 'GREATER'
 	@classmethod
 	def run(cls, args, vm):
-		right = vm.data.pop()
-		left = vm.data.pop()
+		right, left = vm.pop(2)
 		if (left > right):
-			vm.data.append(1)
+			vm.append(1)
 		else:
-			vm.data.append(0)
+			vm.append(0)
 
 class LESS_COMMAND(COMMAND):
 	s = 'LESS'
 	@classmethod
 	def run(cls, args, vm):
-		right = vm.data.pop()
-		left = vm.data.pop()
+		right, left = vm.pop(2)
 		if (left < right):
-			vm.data.append(1)
+			vm.append(1)
 		else:
-			vm.data.append(0)
+			vm.append(0)
 
 class EQUAL_COMMAND(COMMAND):
 	s = 'EQUAL'
 	@classmethod
 	def run(cls, args, vm):
-		right = vm.data.pop()
-		left = vm.data.pop()
+		right, left = vm.pop(2)
 		if (left == right):
-			vm.data.append(1)
+			vm.append(1)
 		else:
-			vm.data.append(0)
+			vm.append(0)
 
 class TESTTGOTO_COMMAND(COMMAND):
 	jump = True
 	s = 'TESTTGOTO'
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.data.pop()
+		val = vm.pop()
 		if val > 0:
 			jump = cls.eval(args[0], vm) - 1
 		else:
@@ -82,7 +79,7 @@ class TESTFGOTO_COMMAND(COMMAND):
 	s = 'TESTFGOTO'
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.data.pop()
+		val = vm.pop()
 		if val == 0:
 			jump = cls.eval(args[0], vm) - 1
 		else:
@@ -93,32 +90,28 @@ class MULTIPLY_COMMAND(COMMAND):
 	s = 'MULTIPLY'
 	@classmethod
 	def run(cls, args, vm):
-		a = vm.data.pop()
-		b = vm.data.pop()
+		a, b = vm.pop(2)
 		vm.data.append(a * b)
 
 class DIVIDE_COMMAND(COMMAND):
 	s = 'DIVIDE'
 	@classmethod
 	def run(cls, args, vm):
-		a = vm.data.pop()
-		b = vm.data.pop()
+		a, b = vm.pop(2)
 		vm.data.append(a / b)
 
 class PLUS_COMMAND(COMMAND):
 	s = 'PLUS'
 	@classmethod
 	def run(cls, args, vm):
-		a = vm.data.pop()
-		b = vm.data.pop()
+		a, b = vm.pop(2)
 		vm.data.append(b + a)
 
 class MINUS_COMMAND(COMMAND):
 	s = 'MINUS'
 	@classmethod
 	def run(cls, args, vm):
-		a = vm.data.pop()
-		b = vm.data.pop()
+		a, b = vm.pop(2)
 		vm.data.append(b - a)
 
 class PRINT_COMMAND(COMMAND):
@@ -164,6 +157,26 @@ class GridLangVM(object):
 	
 	def set_code(self, code):
 		self.code = code
+	
+	def pop(self, n = 1):
+		ret = []
+		try:
+			for i in xrange(n):
+				ret.append(self.data.pop())
+		except IndexError:
+			raise Exception("No more stack")
+		if n == 1:
+			return ret[0]
+		return ret
+
+	def append(self, *args):
+		self.data.extend(args)
+
+	def store(self, key, val):
+		self.reg[key] = val
+	
+	def get(self, key):
+		return self.reg.get(key)
 	
 	def next(self):
 		p = self.pos
