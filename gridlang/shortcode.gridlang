@@ -1,12 +1,14 @@
 store x << 12
 store i << x
 store fact << 1
+@LOOPSTART
 greater << i 1
-testfgoto 11
+testfgoto @LOOPEND
 multiply << fact i
 store fact
 minus << i 1
 store i
-testtgoto 4 << 1
+testtgoto @LOOPSTART << 1
+@LOOPEND
 print << fact
 end

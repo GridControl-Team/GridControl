@@ -1,4 +1,4 @@
-from tokens import TOKENS
+from tokens import TOKENS, JUMPPOINT
 from opcodes import PUSH_OPCODE
 
 class GridLangCode(object):
@@ -32,6 +32,9 @@ class GridLangParser(object):
 		glc = GridLangCode()
 		glc.raw = code
 		lines = code.split("\n")
+
+		jumppoint_map = {}
+
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
 			line = line.strip().upper()
@@ -58,7 +61,32 @@ class GridLangParser(object):
 				parts.append(matched)
 
 			if len(parts):
-				glc.lines.append(parts)
-				glc.mapping[src_ln] = ln
+				if type(parts[0]) == JUMPPOINT:
+					# handle JUMPPOINTs
+					if len(parts) == 1:
+						jumppoint_map[parts[0].val] = ln
+					else:
+						raise Exception("PARSE ERROR: NO CODE AFTER JUMPPOINT")
+				else:
+					glc.lines.append(parts)
+					glc.mapping[src_ln] = ln
+
+		# postprocess JUMPPOINTs
+		invert_mapping = dict(zip(glc.mapping.values(), glc.mapping.keys()))
+		for line in glc.lines:
+			for i, part in enumerate(line):
+				if type(part) == JUMPPOINT:
+					line[i] = invert_mapping.get(jumppoint_map.get(part.val))
+
+		# backfill mapping for empty lines
+		# fixes bad GOTOs
+		src_lns = len(lines)
+		p = src_lns
+		for src_ln in reversed(xrange(src_lns)):
+			if src_ln not in glc.mapping:
+				glc.mapping[src_ln] = p
+			else:
+				p = glc.mapping[src_ln]
+
 		return glc
 

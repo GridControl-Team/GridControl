@@ -52,6 +52,14 @@ class STORE_OPCODE(OPCODE):
 		val = vm.pop()
 		vm.store(key, val)
 
+class GOTO_OPCODE(OPCODE):
+	jump = True
+	s = 'GOTO'
+	@classmethod
+	def run(cls, args, vm):
+		jump = vm.map_goto_num(args[0])
+		vm.exe.append(['JUMP', jump])
+
 class TESTTGOTO_OPCODE(OPCODE):
 	jump = True
 	s = 'TESTTGOTO'
