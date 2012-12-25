@@ -1,31 +1,34 @@
 {% extends "account/base.html" %}
 {% block sub_content %}
 	<div>
-		{% if gists %}
-			<table>
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>Description</th>
-						<th>Files</th>
-					</tr>
-				</thead>
-				<tbody>
-				{% for gist in gists %}
-					<tr>
-						<td>{{ gist.id }}</td>
-						<td>{{ gist.description }}</td>
-						<td>
-							{% for filename, file_data in gist.files.items %}
-								<a href="{% url gist_viewer gist_id=gist.id %}">{{filename}}</a>&nbsp;
-							{% endfor %}
-						</td>
-					</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-		{% else %}
-			<p>No gists found!</p>
-		{% endif %}
+		<h2>How to program your bot</h2>
+		<p>Select a gist that contains a .gridlang file<p>
+	</div>
+	<div>
+		<ul class="gist_list">
+			{% for gist in gists %}
+			<li class="gist_item {% cycle "gist_itema" "gist_itemb" %}">
+				{% if gist.description %}
+					{{ gist.description|truncatechars:64 }}
+				{% else %}
+					--NO DESCRIPTION--
+				{% endif %}
+				<ul class="gist_actions">
+					<li>
+						<a href="">
+							<i class="icon-download"></i>Use
+						</a>
+					</li>
+					<li>
+						<a href="{% url gist_viewer gist_id=gist.id %}">
+							<i class="icon-eye-open"></i>View
+						</a>
+					</li>
+				</ul>
+			</li>
+			{% empty %}
+				<li class="gist_item">No gists!</li>
+			{% endfor %}
+		</ul>
 	</div>
 {% endblock %}
