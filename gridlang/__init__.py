@@ -1,8 +1,14 @@
 from parser import GridLangParser
 from vm import GridLangVM
+import sys
 
 if __name__ == "__main__":
-	with open("code.gridlang") as fh:
+	if len(sys.argv) > 1:
+		fn = sys.argv[1]
+	else:
+		fn = "code.gridlang"
+
+	with open(fn) as fh:
 		code = fh.read()
 	c = GridLangParser.parse(code)
 
@@ -11,12 +17,11 @@ if __name__ == "__main__":
 
 	while 1:
 		if vm is not None:
-			data = vm.freeze_vm()
+			data = vm.freeze()
 		vm = GridLangVM()
-		vm.debug = True
 		vm.set_code(c)
 		if data is not None:
-			vm.thaw_vm(data)
+			vm.thaw(data)
 		if vm.run(10):
 			break
 		

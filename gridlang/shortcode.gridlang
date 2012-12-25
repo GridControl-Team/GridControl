@@ -1,0 +1,12 @@
+store x << 12
+store i << x
+store fact << 1
+greater << i 1
+testfgoto 11
+multiply << fact i
+store fact
+minus << i 1
+store i
+testtgoto 4 << 1
+print << fact
+end

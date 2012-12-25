@@ -8,6 +8,8 @@ class GridLangVM(object):
 		self.pos = 0
 		self.steps = 0
 		self.debug = False
+
+		self.code = None
 	
 	def trace(self, *args):
 		if self.debug:
@@ -16,7 +18,7 @@ class GridLangVM(object):
 				print arg,
 			print ""
 	
-	def freeze_vm(self):
+	def freeze(self):
 		"""Return a copy of all pertinent data structures necessary
 		to store the executable state of this vm"""
 		ret = {
@@ -28,7 +30,7 @@ class GridLangVM(object):
 		}
 		return ret
 
-	def thaw_vm(self, data):
+	def thaw(self, data):
 		"""Reload a previously frozen state of a vm"""
 		self.data = list(data['data'])
 		self.exe = list(data['exe'])
@@ -75,12 +77,15 @@ class GridLangVM(object):
 		"""Get an item out of the registry"""
 		return self.reg.get(key)
 
+	def map_goto_num(self, i):
+		val = self.eval(i) - 1
+		return self.code.get_goto_line(val)
 
 	###### VM Execution methods ##############
 	def __run_step(self):
 		p = self.pos
 		newp = self.pos + 1
-		line = self.code[p]
+		line = self.code.get_line(p)
 		cmd_s = line[0]
 		args = line[1:]
 
@@ -106,7 +111,7 @@ class GridLangVM(object):
 			# assume we're just JUMP-ing now
 			self.pos = ecmd[1]
 
-		if self.pos >= len(self.code):
+		if self.pos >= len(self.code.lines):
 			# ran off the bottom of the code
 			return False
 	
