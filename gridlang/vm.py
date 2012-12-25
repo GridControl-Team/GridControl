@@ -1,147 +1,4 @@
-class COMMAND(object):
-	jump = False
-	@classmethod
-	def match(cls, s):
-		if hasattr(cls.s, '__iter__'):
-			return s in cls.s
-		return s == cls.s
-
-	@classmethod
-	def run(cls, vm):
-		pass
-
-	@classmethod
-	def eval(cls, i, vm):
-		if type(i) in (int, float):
-			return i
-		else:
-			return vm.get(i)
-
-class PUSH_COMMAND(COMMAND):
-	s = 'PUSH'
-	@classmethod
-	def run(cls, args, vm):
-		val = cls.eval(args[0], vm)
-		vm.append(val)
-
-class STORE_COMMAND(COMMAND):
-	s = 'STORE'
-	@classmethod
-	def run(cls, args, vm):
-		key = args[0]
-		val = vm.pop()
-		vm.store(key, val)
-
-class GREATER_COMMAND(COMMAND):
-	s = 'GREATER'
-	@classmethod
-	def run(cls, args, vm):
-		right, left = vm.pop(2)
-		if (left > right):
-			vm.append(1)
-		else:
-			vm.append(0)
-
-class LESS_COMMAND(COMMAND):
-	s = 'LESS'
-	@classmethod
-	def run(cls, args, vm):
-		right, left = vm.pop(2)
-		if (left < right):
-			vm.append(1)
-		else:
-			vm.append(0)
-
-class EQUAL_COMMAND(COMMAND):
-	s = 'EQUAL'
-	@classmethod
-	def run(cls, args, vm):
-		right, left = vm.pop(2)
-		if (left == right):
-			vm.append(1)
-		else:
-			vm.append(0)
-
-class TESTTGOTO_COMMAND(COMMAND):
-	jump = True
-	s = 'TESTTGOTO'
-	@classmethod
-	def run(cls, args, vm):
-		val = vm.pop()
-		if val > 0:
-			jump = cls.eval(args[0], vm) - 1
-		else:
-			jump = vm.pos + 1
-		vm.exe.append(['JUMP', jump])
-
-class TESTFGOTO_COMMAND(COMMAND):
-	jump = True
-	s = 'TESTFGOTO'
-	@classmethod
-	def run(cls, args, vm):
-		val = vm.pop()
-		if val == 0:
-			jump = cls.eval(args[0], vm) - 1
-		else:
-			jump = vm.pos + 1
-		vm.exe.append(['JUMP', jump])
-
-class MULTIPLY_COMMAND(COMMAND):
-	s = 'MULTIPLY'
-	@classmethod
-	def run(cls, args, vm):
-		a, b = vm.pop(2)
-		vm.data.append(a * b)
-
-class DIVIDE_COMMAND(COMMAND):
-	s = 'DIVIDE'
-	@classmethod
-	def run(cls, args, vm):
-		a, b = vm.pop(2)
-		vm.data.append(a / b)
-
-class PLUS_COMMAND(COMMAND):
-	s = 'PLUS'
-	@classmethod
-	def run(cls, args, vm):
-		a, b = vm.pop(2)
-		vm.data.append(b + a)
-
-class MINUS_COMMAND(COMMAND):
-	s = 'MINUS'
-	@classmethod
-	def run(cls, args, vm):
-		a, b = vm.pop(2)
-		vm.data.append(b - a)
-
-class PRINT_COMMAND(COMMAND):
-	s = 'PRINT'
-	@classmethod
-	def run(cls, args, vm):
-		val = vm.data[-1]
-		print val
-
-class END_COMMAND(COMMAND):
-	s = 'END'
-	@classmethod
-	def run(cls, args, vm):
-		pass
-
-COMMANDS = [
-	PUSH_COMMAND,
-	STORE_COMMAND,
-	GREATER_COMMAND,
-	LESS_COMMAND,
-	EQUAL_COMMAND,
-	TESTTGOTO_COMMAND,
-	TESTFGOTO_COMMAND,
-	MULTIPLY_COMMAND,
-	DIVIDE_COMMAND,
-	PLUS_COMMAND,
-	MINUS_COMMAND,
-	PRINT_COMMAND,
-	END_COMMAND,
-]
+from opcodes import OPCODES
 
 class GridLangVM(object):
 	def __init__(self):
@@ -149,6 +6,14 @@ class GridLangVM(object):
 		self.exe = []
 		self.reg = {}
 		self.pos = 0
+		self.debug = False
+	
+	def trace(self, *args):
+		if self.debug:
+			print " >> ",
+			for arg in args:
+				print arg,
+			print ""
 
 	def set_stacks(self, data, registry, pos):
 		self.data = data
@@ -166,14 +31,23 @@ class GridLangVM(object):
 		except IndexError:
 			raise Exception("No more stack")
 		if n == 1:
-			return ret[0]
+			ret = ret[0]
+		self.trace("Pop", n, ret, self.data)
 		return ret
 
 	def append(self, *args):
 		self.data.extend(args)
+		self.trace("Appending", args, self.data)
+	
+	def eval(self, i):
+		if type(i) in (int, float):
+			return i
+		else:
+			return self.get(i)
 
 	def store(self, key, val):
 		self.reg[key] = val
+		self.trace("Storing", key, val, self.reg)
 	
 	def get(self, key):
 		return self.reg.get(key)
@@ -185,10 +59,14 @@ class GridLangVM(object):
 		cmd_s = line[0]
 		args = line[1:]
 
-		cmd = (CMD for CMD in COMMANDS if CMD.match(cmd_s)).next()
+		try:
+			cmd = (CMD for CMD in OPCODES if CMD.match(cmd_s)).next()
+		except StopIteration as e:
+			raise Exception("UNKNOWN OPCODE {0}".format(cmd_s))
 		if cmd is None:
 			raise Exception("WTF")
 
+		self.trace("Executing", cmd, args)
 		cmd.run(args, self)
 
 		# if command does not involve jumping go to next line

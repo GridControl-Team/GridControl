@@ -1,37 +1,4 @@
-import re
-
-class TOKEN(object):
-	@classmethod
-	def match(cls, s):
-		return cls.re.match(s)
-
-	@classmethod
-	def emit(cls, i):
-		return i
-
-class TOKEN_INT(TOKEN):
-	r = r'^\d+$'
-	@classmethod
-	def emit(cls, i):
-		return int(i)
-
-class TOKEN_FLOAT(TOKEN):
-	r = r'^\d+\.\d+$'
-	@classmethod
-	def emit(cls, i):
-		return float(i)
-
-class TOKEN_LABEL(TOKEN):
-	r = r'^\w+$'
-
-TOKENS = [
-	TOKEN_INT,
-	TOKEN_FLOAT,
-	TOKEN_LABEL,
-]
-
-for tok in TOKENS:
-	tok.re = re.compile(tok.r)
+from tokens import TOKENS
 
 class GridLangParser(object):
 	@classmethod
