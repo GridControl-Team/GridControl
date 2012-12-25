@@ -43,15 +43,15 @@ serverurl=unix://run/supervisor.sock ; use a unix:// URL  for a unix socket
 ;history_file=~/.sc_history  ; use readline history if available
 
 [program:gridcontrol_runserver]
-command=python manage.py runserver 0.0.0.0:8001
-autostart=true
+command=python manage.py runserver 0.0.0.0:8000
+autostart=false
 autorestart=true
 redirect_stderr=true
 stdout_logfile=run/logs/gridcontrol.log
 stopsignal=QUIT
 
 [program:gridcontrol_gunicorn]
-command=gunicorn_django -b 0.0.0.0:8001
+command=gunicorn_django -b 0.0.0.0:8000
 autostart=false
 autorestart=true
 redirect_stderr=true
