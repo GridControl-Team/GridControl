@@ -24,7 +24,8 @@ class GridLangCode(object):
 	def thaw(self, data):
 		self.raw = str(data['raw'])
 		self.lines = list(data['lines'])
-		self.mapping = dict(data['mapping'])
+		#json trounces the integer keys, so we have to fix them here
+		self.mapping = dict((int(k), int(v)) for k,v in data['mapping'].iteritems())
 
 class GridLangParser(object):
 	@classmethod

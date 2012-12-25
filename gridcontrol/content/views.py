@@ -8,7 +8,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
-from gridcontrol.engine.tasks import register_login
+from gridcontrol.engine.tasks import register_login, register_code
 
 def home(request):
 	ctx = {}
@@ -41,6 +41,23 @@ def account_gists(request):
 	ctx = {"gists": gists}
 	request.session["gists"] = gists
 	return render_to_response("account/gists.html", ctx, RequestContext(request))
+
+@login_required
+def use_gist(request, gist_id=0):
+	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
+	code = None
+	success = False
+	ctx = {}
+	gist_retriever = GistRetriever(request.user.username)
+	for gist_filename, gist_file_data in gist['files'].items():
+		if gist_filename.upper().endswith(".GRIDLANG"):
+			register_code(request.user, gist_file_data['raw_url'])
+			success = True
+
+	if success:
+		ctx['filename'] = gist_filename
+	ctx['success'] = success
+	return render_to_response("account/use_gist.html", ctx, RequestContext(request))
 
 @login_required
 def gist_viewer(request, gist_id=0):

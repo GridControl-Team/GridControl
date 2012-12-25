@@ -84,7 +84,7 @@ class GridLangVM(object):
 	###### VM Execution methods ##############
 	def __run_step(self):
 		p = self.pos
-		newp = self.pos + 1
+		newp = p + 1
 		line = self.code.get_line(p)
 		cmd_s = line[0]
 		args = line[1:]

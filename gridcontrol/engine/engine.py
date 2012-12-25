@@ -1,7 +1,10 @@
 import random
 import operator
+import json
 
-from gridlang import GridLangVM
+from gridlang import GridLangVM, GridLangParser
+from gridlang.parser import GridLangCode
+from gridcontrol.gist_retriever import GistRetriever
 
 class GridControlEngine(object):
 	WIDTH = 16
@@ -24,6 +27,13 @@ class GridControlEngine(object):
 		User bot will no longer active on tick_users."""
 		self.redis.sdel("active_users", user_id)
 	
+	def register_code(self, user_id, gist_url):
+		gist_retriever = GistRetriever("lol")
+		code = gist_retriever.get_file_text(gist_url)
+		compiled = GridLangParser.parse(code)
+		frozen = compiled.freeze()
+		self.freeze_user_code(user_id, frozen)
+	
 	def thaw_user(self, user_id):
 		vm_key = "user_vm_{0}".format(user_id)
 		code_key = "user_code_{0}".format(user_id)
@@ -32,7 +42,9 @@ class GridControlEngine(object):
 		if user_vm is not None:
 			user_vm = json.loads(user_vm)
 		if user_code is not None:
-			user_code = json.loads(user_code)
+			frozen_user_code = json.loads(user_code)
+			user_code = GridLangCode()
+			user_code.thaw(frozen_user_code)
 		return user_vm, user_code
 
 	def freeze_user_code(self, user_id, user_code):
@@ -74,12 +86,14 @@ class GridControlEngine(object):
 		vm.set_code(user_code)
 		if user_vm is not None:
 			vm.thaw(user_vm)
-		vm.debug = True
-		vm.run(10)
-
-		print "FREEZING!"
-		data = vm.freeze()
-		self.freeze_user_vm(data)
+		#vm.debug = True
+		if vm.run(100) == True:
+			vm_key = "user_vm_{0}".format(user_id)
+			self.redis.delete(vm_key)
+		else:
+			print "FREEZING!"
+			data = vm.freeze()
+			self.freeze_user_vm(user_id, data)
 	
 	def __old_random_walk(self):
 		# blah stupid random walk

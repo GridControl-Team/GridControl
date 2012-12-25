@@ -27,6 +27,11 @@ def register_logout(user):
 	gce = GridControlEngine(get_client())
 	gce.deactivate_user(user.id)
 
+@task(name='gridcontrol.engine.register_code')
+def register_code(user, gist_url):
+	gce = GridControlEngine(get_client())
+	gce.register_code(user.id, gist_url)
+
 @task(name='gridcontrol.engine.tick_all_users')
 def tick_all_users():
 	gce = GridControlEngine(get_client())
