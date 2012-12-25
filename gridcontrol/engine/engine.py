@@ -89,6 +89,7 @@ class GridControlEngine(object):
 		#vm.debug = True
 		if vm.run(100) == True:
 			vm_key = "user_vm_{0}".format(user_id)
+			print "USER PROGRAM ENDED, CLEAR VM"
 			self.redis.delete(vm_key)
 		else:
 			print "FREEZING!"
@@ -130,6 +131,5 @@ class GridControlEngine(object):
 		self.redis.hmset("users_hash", user_hash)
 	
 	def emit_tick(self):
-		print "EMIT TICK"
+		print "EMIT TICK TO STREAMING CLIENTS"
 		i = self.redis.publish("global_tick", "tick")
-		print "received:", i
