@@ -15,7 +15,7 @@ class _METAOPERATOR_OPCODE(_METAOPCODE):
 	def __init__(cls, name, bases, dct):
 		super(_METAOPERATOR_OPCODE, cls).__init__(name, bases, dct)
 		def _run(cls, args, vm):
-			right, left = vm.pop(2)
+			left, right = vm.pop(2)
 			vm.append(int(cls.o(left, right)))
 		cls.run = classmethod(_run)
 

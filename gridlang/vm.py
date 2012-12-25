@@ -17,6 +17,8 @@ class GridLangVM(object):
 			print ""
 	
 	def freeze_vm(self):
+		"""Return a copy of all pertinent data structures necessary
+		to store the executable state of this vm"""
 		ret = {
 			'data': list(self.data),
 			'exe': list(self.exe),
@@ -27,6 +29,7 @@ class GridLangVM(object):
 		return ret
 
 	def thaw_vm(self, data):
+		"""Reload a previously frozen state of a vm"""
 		self.data = list(data['data'])
 		self.exe = list(data['exe'])
 		self.reg = dict(data['reg'])
@@ -34,38 +37,47 @@ class GridLangVM(object):
 		self.steps = data['steps']
 
 	def set_code(self, code):
+		"""Attach opcodes to this vm"""
 		self.code = code
 	
+	###### VM data access methods ########
+	# These methods are used in OPCODE run method to access data, use these
+	# methods because exception handling is a good idea
 	def pop(self, n = 1):
-		ret = []
-		try:
-			for i in xrange(n):
-				ret.append(self.data.pop())
-		except IndexError:
-			raise Exception("No more stack")
+		"""Pop n items off of stack"""
+		i = len(self.data) - n
+		if i < 0:
+			raise Exception("Stack empty")
+		self.data, ret = self.data[:i], self.data[i:]
 		if n == 1:
 			ret = ret[0]
 		self.trace("Pop", n, ret, self.data)
 		return ret
 
 	def append(self, *args):
+		"""Push items onto stack"""
 		self.data.extend(args)
 		self.trace("Appending", args, self.data)
 	
 	def eval(self, i):
+		"""If i is not a scalar resolve it out of the registry"""
 		if type(i) in (int, float):
 			return i
 		else:
 			return self.get(i)
 
 	def store(self, key, val):
+		"""Store value in the registry under key"""
 		self.reg[key] = val
 		self.trace("Storing", key, val, self.reg)
 	
 	def get(self, key):
+		"""Get an item out of the registry"""
 		return self.reg.get(key)
-	
-	def next(self):
+
+
+	###### VM Execution methods ##############
+	def __run_step(self):
 		p = self.pos
 		newp = self.pos + 1
 		line = self.code[p]
@@ -95,17 +107,18 @@ class GridLangVM(object):
 			self.pos = ecmd[1]
 
 		if self.pos >= len(self.code):
+			# ran off the bottom of the code
 			return False
 	
 	def __run_forever(self):
 		while 1:
-			if self.next() == False:
+			if self.__run_step() == False:
 				break
 
 	def __run_steps(self, n):
 		self.steps = self.steps + n
 		while 1:
-			if self.next() == False:
+			if self.__run_step() == False:
 				return True
 			self.steps = self.steps - 1
 			if self.steps < 0:

@@ -13,6 +13,7 @@ if __name__ == "__main__":
 		if vm is not None:
 			data = vm.freeze_vm()
 		vm = GridLangVM()
+		vm.debug = True
 		vm.set_code(c)
 		if data is not None:
 			vm.thaw_vm(data)
