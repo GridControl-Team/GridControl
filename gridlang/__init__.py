@@ -6,8 +6,16 @@ if __name__ == "__main__":
 		code = fh.read()
 	c = GridLangParser.parse(code)
 
-	vm = GridLangVM()
-	vm.set_stacks([], {}, 0)
-	vm.set_code(c)
+	vm = None
+	data = None
 
-	vm.run()
+	while 1:
+		if vm is not None:
+			data = vm.freeze_vm()
+		vm = GridLangVM()
+		vm.set_code(c)
+		if data is not None:
+			vm.thaw_vm(data)
+		if vm.run(10):
+			break
+		

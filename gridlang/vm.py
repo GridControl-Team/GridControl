@@ -6,6 +6,7 @@ class GridLangVM(object):
 		self.exe = []
 		self.reg = {}
 		self.pos = 0
+		self.steps = 0
 		self.debug = False
 	
 	def trace(self, *args):
@@ -14,12 +15,24 @@ class GridLangVM(object):
 			for arg in args:
 				print arg,
 			print ""
-
-	def set_stacks(self, data, registry, pos):
-		self.data = data
-		self.reg = registry
-		self.pos = pos
 	
+	def freeze_vm(self):
+		ret = {
+			'data': list(self.data),
+			'exe': list(self.exe),
+			'reg': dict(self.reg),
+			'pos': self.pos,
+			'steps': self.steps,
+		}
+		return ret
+
+	def thaw_vm(self, data):
+		self.data = list(data['data'])
+		self.exe = list(data['exe'])
+		self.reg = dict(data['reg'])
+		self.pos = data['pos']
+		self.steps = data['steps']
+
 	def set_code(self, code):
 		self.code = code
 	
@@ -84,7 +97,23 @@ class GridLangVM(object):
 		if self.pos >= len(self.code):
 			return False
 	
-	def run(self):
+	def __run_forever(self):
 		while 1:
 			if self.next() == False:
 				break
+
+	def __run_steps(self, n):
+		self.steps = self.steps + n
+		while 1:
+			if self.next() == False:
+				return True
+			self.steps = self.steps - 1
+			if self.steps < 0:
+				self.trace("Freezing")
+				return False
+	
+	def run(self, steps = None):
+		if steps is None:
+			return self.__run_forever()
+		else:
+			return self.__run_steps(steps)
