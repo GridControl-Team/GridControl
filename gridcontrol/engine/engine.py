@@ -5,6 +5,7 @@ import json
 from gridlang import GridLangVM, GridLangParser
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
+from gridcontrol.engine.ffi import GridControlFFI
 
 class GridControlEngine(object):
 	WIDTH = 16
@@ -30,7 +31,7 @@ class GridControlEngine(object):
 	def register_code(self, user_id, gist_url):
 		gist_retriever = GistRetriever("lol")
 		code = gist_retriever.get_file_text(gist_url)
-		compiled = GridLangParser.parse(code)
+		compiled = GridLangParser.parse(code, constants=GridControlFFI.CONSTANTS)
 		frozen = compiled.freeze()
 		self.freeze_user_code(user_id, frozen)
 	
@@ -72,7 +73,7 @@ class GridControlEngine(object):
 	def tick_environment(self):
 		pass
 
-	def tick_user(self, user_id):
+	def tick_user(self, user_id, game_data):
 		print "TICK FOR USER", user_id
 		user_vm, user_code = self.thaw_user(user_id)
 
@@ -82,7 +83,9 @@ class GridControlEngine(object):
 			return
 
 		print "EXECUTING!"
+		ffi = GridControlFFI(game_data)
 		vm = GridLangVM()
+		vm.ffi = ffi.call_ffi
 		vm.set_code(user_code)
 		if user_vm is not None:
 			vm.thaw(user_vm)
@@ -117,12 +120,14 @@ class GridControlEngine(object):
 		user_hash = {}
 		for k, v in user_hash_raw.iteritems():
 			user_hash[k] = tuple(int(i) for i in v.split(","))
+
+		game_data = 10
 		
 		for userid in active_users:
 			if userid not in user_hash:
 				# new user, place them on map somewhere
 				user_hash[userid] = (5, 5)
-			self.tick_user(userid)
+			self.tick_user(userid, game_data)
 
 			# blah
 			new_loc = [5, 5]

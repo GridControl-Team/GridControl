@@ -22,7 +22,9 @@ class GridLangVM(object):
 	
 	def call_ffi(self, *args):
 		if self.ffi is not None:
-			ret = self.ffi(*args)
+			ret = self.ffi(self, args)
+			if ret is not None:
+				self.append(ret)
 	
 	def freeze(self):
 		"""Return a copy of all pertinent data structures necessary

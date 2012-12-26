@@ -4,6 +4,9 @@ import sys
 sys.path.append("..")
 from gridcontrol.engine.ffi import GridControlFFI
 
+def fake_ffi(vm, args):
+	return 0
+
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
 		fn = sys.argv[1]
@@ -21,6 +24,7 @@ if __name__ == "__main__":
 		if vm is not None:
 			data = vm.freeze()
 		vm = GridLangVM()
+		vm.ffi = fake_ffi
 		vm.set_code(c)
 		if data is not None:
 			vm.thaw(data)
