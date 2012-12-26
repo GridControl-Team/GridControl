@@ -1,6 +1,8 @@
 from parser import GridLangParser
 from vm import GridLangVM
 import sys
+sys.path.append("..")
+from gridcontrol.engine.ffi import GridControlFFI
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
@@ -10,7 +12,7 @@ if __name__ == "__main__":
 
 	with open(fn) as fh:
 		code = fh.read()
-	c = GridLangParser.parse(code)
+	c = GridLangParser.parse(code, constants=GridControlFFI.CONSTANTS)
 
 	vm = None
 	data = None

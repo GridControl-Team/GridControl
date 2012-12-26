@@ -15,7 +15,7 @@ class _METATOKEN(type):
 			TOKENS.append(cls)
 			cls.re = re.compile(cls.r)
 
-class JUMPPOINT(object):
+class CONSTANT(object):
 	def __init__(self, i):
 		self.val = i
 
@@ -41,11 +41,11 @@ class TOKEN_FLOAT(TOKEN):
 	def emit(cls, i):
 		return float(i)
 
-class TOKEN_JUMPPOINT(TOKEN):
+class TOKEN_CONSTANT(TOKEN):
 	r = r'^@\w+$'
 	@classmethod
 	def emit(cls, i):
-		return JUMPPOINT(i)
+		return CONSTANT(i[1:])
 
 class TOKEN_LABEL(TOKEN):
 	r = r'^\w+$'

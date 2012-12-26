@@ -57,7 +57,8 @@ class GOTO_OPCODE(OPCODE):
 	s = 'GOTO'
 	@classmethod
 	def run(cls, args, vm):
-		jump = vm.map_goto_num(args[0])
+		val = vm.pop()
+		jump = vm.map_goto_num(val)
 		vm.exe.append(['JUMP', jump])
 
 class TESTTGOTO_OPCODE(OPCODE):
@@ -125,3 +126,10 @@ class MINUS_OPCODE(OPERATOR_OPCODE):
 	s = 'MINUS'
 	o = operator.sub
 
+class FFI_OPCODE(OPCODE):
+	s = 'FFI'
+
+	@classmethod
+	def run(cls, args, vm):
+		left, right = vm.pop(2)
+		vm.call_ffi(left, right)

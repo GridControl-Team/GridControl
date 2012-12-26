@@ -1,0 +1,22 @@
+# This bot will continually travel south
+# pulling from the east or west if it
+# finds resources there
+@LOOPSTART
+FFI << @LOOK @EAST
+testtgoto @PULLEAST
+FFI << @LOOK @WEST
+testtgoto @PULLWEST
+
+FFI << @MOVE @SOUTH
+goto << @LOOPEND
+
+@PULLEAST
+FFI << @PULL @EAST
+goto << @LOOPEND
+
+@PULLWEST
+FFI << @PULL @WEST
+goto << @LOOPEND
+
+@LOOPEND
+goto << @LOOPSTART

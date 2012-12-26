@@ -1,5 +1,6 @@
-from tokens import TOKENS, JUMPPOINT
+from tokens import TOKENS, CONSTANT
 from opcodes import PUSH_OPCODE
+from errors import *
 
 class GridLangCode(object):
 	def __init__(self):
@@ -34,16 +35,19 @@ class GridLangParser(object):
 		try:
 			matched = (tok.emit(part) for tok in TOKENS if tok.match(part) is not None).next()
 		except (IndexError, StopIteration) as e:
-			raise Exception("Invalid TOKEN: {0}".format(part))
+			raise GridLangParseException("Invalid TOKEN: {0}".format(part))
 		return matched
 
 	@classmethod
-	def parse(cls, code):
+	def parse(cls, code, constants=None):
 		glc = GridLangCode()
 		glc.raw = code
 		lines = code.split("\n")
 
-		jumppoint_map = {}
+		if constants is None:
+			constants = {}
+		else:
+			constants = dict(constants)
 
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
@@ -68,22 +72,29 @@ class GridLangParser(object):
 				parts.append(matched)
 
 			if len(parts):
-				if type(parts[0]) == JUMPPOINT:
-					# handle JUMPPOINTs
+				if type(parts[0]) == CONSTANT:
+					# handle CONSTANTs
 					if len(parts) == 1:
-						jumppoint_map[parts[0].val] = ln
+						v = parts[0].val
+						if v not in constants:
+							constants[v] = src_ln + 1
+						else:
+							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v))
 					else:
-						raise Exception("PARSE ERROR: NO CODE AFTER JUMPPOINT")
+						raise GridLangParseException("PARSE ERROR: NO CODE ALLOWED AFTER CONSTANT")
 				else:
 					glc.lines.append(parts)
 					glc.mapping[src_ln] = ln
 
-		# postprocess JUMPPOINTs
-		invert_mapping = dict(zip(glc.mapping.values(), glc.mapping.keys()))
+		# postprocess CONSTANTs
 		for line in glc.lines:
 			for i, part in enumerate(line):
-				if type(part) == JUMPPOINT:
-					line[i] = invert_mapping.get(jumppoint_map.get(part.val))
+				if type(part) == CONSTANT:
+					v = constants.get(part.val)
+					if v is not None:
+						line[i] = v
+					else:
+						raise GridLangParseException("NO SUCH CONSTANT {0}".format(part.val))
 
 		# backfill mapping for empty lines
 		# fixes bad GOTOs

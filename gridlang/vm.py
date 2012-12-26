@@ -1,4 +1,5 @@
 from opcodes import OPCODES
+from errors import *
 
 class GridLangVM(object):
 	def __init__(self):
@@ -10,6 +11,7 @@ class GridLangVM(object):
 		self.debug = False
 
 		self.code = None
+		self.ffi = None
 	
 	def trace(self, *args):
 		if self.debug:
@@ -17,6 +19,10 @@ class GridLangVM(object):
 			for arg in args:
 				print arg,
 			print ""
+	
+	def call_ffi(self, *args):
+		if self.ffi is not None:
+			ret = self.ffi(*args)
 	
 	def freeze(self):
 		"""Return a copy of all pertinent data structures necessary
@@ -49,7 +55,7 @@ class GridLangVM(object):
 		"""Pop n items off of stack"""
 		i = len(self.data) - n
 		if i < 0:
-			raise Exception("Stack empty")
+			raise GridLangExecutionException("Stack empty")
 		self.data, ret = self.data[:i], self.data[i:]
 		if n == 1:
 			ret = ret[0]
@@ -92,9 +98,9 @@ class GridLangVM(object):
 		try:
 			cmd = (CMD for CMD in OPCODES if CMD.match(cmd_s)).next()
 		except StopIteration as e:
-			raise Exception("UNKNOWN OPCODE {0}".format(cmd_s))
+			raise GridLangExecutionException("UNKNOWN OPCODE {0}".format(cmd_s))
 		if cmd is None:
-			raise Exception("WTF")
+			raise GridLangExecutionException("WTF")
 
 		self.trace("Executing", cmd, args)
 		cmd.run(args, self)
@@ -131,7 +137,18 @@ class GridLangVM(object):
 				return False
 	
 	def run(self, steps = None):
-		if steps is None:
-			return self.__run_forever()
-		else:
-			return self.__run_steps(steps)
+		try:
+			if steps is None:
+				return self.__run_forever()
+			else:
+				return self.__run_steps(steps)
+		except GridLangException as e:
+			print "Stack:", self.data
+			print "Registry:", self.reg
+			minln = max(self.pos - 5, 0)
+			maxln = self.pos + 5
+			for i, line in enumerate(self.code.lines[minln:maxln]):
+				ln = i + minln
+				print "{0} : {1}".format("*" if (ln == self.pos) else ln, line)
+			raise e
+
