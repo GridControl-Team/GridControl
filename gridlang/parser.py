@@ -28,6 +28,15 @@ class GridLangCode(object):
 		self.mapping = dict((int(k), int(v)) for k,v in data['mapping'].iteritems())
 
 class GridLangParser(object):
+
+	@classmethod
+	def match_token(cls, part):
+		try:
+			matched = (tok.emit(part) for tok in TOKENS if tok.match(part) is not None).next()
+		except (IndexError, StopIteration) as e:
+			raise Exception("Invalid TOKEN: {0}".format(part))
+		return matched
+
 	@classmethod
 	def parse(cls, code):
 		glc = GridLangCode()
@@ -39,6 +48,9 @@ class GridLangParser(object):
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
 			line = line.strip().upper()
+			if line.startswith("#"):
+				# this was a comment
+				line = ""
 			parts_raw = line.split()
 
 			parts = []
@@ -48,17 +60,11 @@ class GridLangParser(object):
 				parts_raw, parts_push = parts_raw[:i], parts_raw[i+1:]
 
 				for part in parts_push:
-					try:
-						matched = (tok.emit(part) for tok in TOKENS if tok.match(part) is not None).next()
-					except IndexError:
-						raise Exception("Invalid TOKEN")
+					matched = cls.match_token(part)
 					glc.lines.append([PUSH_OPCODE.s, matched])
 
 			for part in parts_raw:
-				try:
-					matched = (tok.emit(part) for tok in TOKENS if tok.match(part) is not None).next()
-				except IndexError:
-					raise Exception("Invalid TOKEN")
+				matched = cls.match_token(part)
 				parts.append(matched)
 
 			if len(parts):
