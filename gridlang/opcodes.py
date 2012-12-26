@@ -1,3 +1,4 @@
+from errors import GridLangPanicException
 import operator
 
 OPCODES = []
@@ -44,6 +45,28 @@ class PUSH_OPCODE(OPCODE):
 		val = vm.eval(args[0])
 		vm.append(val)
 
+class POP_OPCODE(OPCODE):
+	s = 'POP'
+	@classmethod
+	def run(cls, args, vm):
+		vm.pop()
+
+class SWAP_OPCODE(OPCODE):
+	s = 'SWAP'
+	@classmethod
+	def run(cls, args, vm):
+		a, b = vm.pop(2)
+		vm.append(b)
+		vm.append(a)
+
+class DUP_OPCODE(OPCODE):
+	s = 'DUP'
+	@classmethod
+	def run(cls, args, vm):
+		a = vm.pop()
+		vm.append(a)
+		vm.append(a)
+
 class STORE_OPCODE(OPCODE):
 	s = 'STORE'
 	@classmethod
@@ -63,7 +86,7 @@ class GOTO_OPCODE(OPCODE):
 
 class TESTTGOTO_OPCODE(OPCODE):
 	jump = True
-	s = 'TESTTGOTO'
+	s = ['TESTTGOTO', 'IFTGOTO']
 	@classmethod
 	def run(cls, args, vm):
 		val = vm.pop()
@@ -75,7 +98,7 @@ class TESTTGOTO_OPCODE(OPCODE):
 
 class TESTFGOTO_OPCODE(OPCODE):
 	jump = True
-	s = 'TESTFGOTO'
+	s = ['TESTFGOTO', 'IFFGOTO']
 	@classmethod
 	def run(cls, args, vm):
 		val = vm.pop()
@@ -89,7 +112,7 @@ class PRINT_OPCODE(OPCODE):
 	s = 'PRINT'
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.data[-1]
+		val = vm.pop()
 		print val
 
 class END_OPCODE(OPCODE):
@@ -111,20 +134,34 @@ class EQUAL_OPCODE(OPERATOR_OPCODE):
 	o = operator.eq
 
 class MULTIPLY_OPCODE(OPERATOR_OPCODE):
-	s = 'MULTIPLY'
+	s = ['MUL', 'MULTIPLY']
 	o = operator.mul
 
 class DIVIDE_OPCODE(OPERATOR_OPCODE):
-	s = 'DIVIDE'
+	s = ['DIV', 'DIVIDE']
 	o = operator.floordiv
 
 class PLUS_OPCODE(OPERATOR_OPCODE):
-	s = 'PLUS'
+	s = ['PLUS', 'ADD']
 	o = operator.add
 
 class MINUS_OPCODE(OPERATOR_OPCODE):
-	s = 'MINUS'
+	s = ['MINUS', 'SUB']
 	o = operator.sub
+
+class MIN_OPCODE(OPERATOR_OPCODE):
+	s = ['MIN', 'MINIMUM']
+	o = min
+
+class MAX_OPCODE(OPERATOR_OPCODE):
+	s = ['MAX', 'MAXIMUM']
+	o = max
+
+class PANIC_OPCODE(OPCODE):
+	s = 'PANIC'
+	@classmethod
+	def run(cls, args, vm):
+		raise GridLangPanicException("PANIC CALLED")
 
 class FFI_OPCODE(OPCODE):
 	s = 'FFI'

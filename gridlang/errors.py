@@ -6,3 +6,6 @@ class GridLangParseException(GridLangException):
 
 class GridLangExecutionException(GridLangException):
 	pass
+
+class GridLangPanicException(GridLangException):
+	pass
