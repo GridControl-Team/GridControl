@@ -11,18 +11,25 @@ class GridControlFFI(object):
 		'MOVE': 3,
 	}
 
-	def __init__(self, data):
-		self.game_data = data
+	def __init__(self, user_id, gamestate):
+		self.user_id = user_id
+		self.gamestate = gamestate
 
 	def call_ffi(self, vm, args):
 		cmd = args[0]
 		val = args[1]
 		if cmd == self.CONSTANTS.get('LOOK'):
 			print "LOOKING"
-			return 0
+			return self.gamestate.user_look(self.user_id, val)
 		elif cmd == self.CONSTANTS.get('PULL'):
 			print "PULLING"
+			ret = self.gamestate.user_pull(self.user_id, val)
+			if ret == 1:
+				self.gamestate.add_score(self.user_id)
+			vm.steps = 0
 			return 1
 		elif cmd == self.CONSTANTS.get('MOVE'):
 			print "MOVING"
+			self.gamestate.move_user(self.user_id, val)
+			vm.steps = 0
 			return 1

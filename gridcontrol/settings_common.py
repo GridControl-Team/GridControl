@@ -170,7 +170,7 @@ CELERYBEAT_SCHEDULE = {
 	"game_tick": {
 		"task": "gridcontrol.engine.tick_all_users",
 		#"schedule" : crontab(minute='*/1'),
-		"schedule" : timedelta(seconds=15),
+		"schedule" : timedelta(seconds=5),
 		"args": None,
 	},
 }

@@ -1,11 +1,61 @@
 import random
 import operator
 import json
+import bitarray
 
 from gridlang import GridLangVM, GridLangParser
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
 from gridcontrol.engine.ffi import GridControlFFI
+
+def direction_from_pos(direction, pos):
+	delta = {
+		0: [0, -1],
+		1: [1, 0],
+		2: [0, 1],
+		3: [-1, 0],
+	}.get(direction)
+	new_pos = map(sum, zip(pos, delta))
+	for i, s in enumerate([16, 16]):
+		if new_pos[i] < 0:
+			new_pos[i] = (s - 1)
+		elif new_pos[i] > (s - 1):
+			new_pos[i] = 0
+	return new_pos
+
+class GameState(object):
+	def __init__(self, map_val, user_val):
+		self.map_data = json.loads(map_val)
+		self.user_data = json.loads(user_val)
+
+	def spawn_user(self, userid):
+		self.user_data[userid] = [5, 5]
+	
+	def move_user(self, userid, direction):
+		old_pos = list(self.user_data.get(userid))
+		new_pos = direction_from_pos(direction, old_pos)
+		self.user_data[userid] = new_pos
+	
+	def add_score(self, userid):
+		pass
+	
+	def user_look(self, userid, direction):
+		old_pos = list(self.user_data.get(userid))
+		new_pos = direction_from_pos(direction, old_pos)
+		return self.map_data[new_pos[1]][new_pos[0]]
+
+	def user_pull(self, userid, direction):
+		old_pos = list(self.user_data.get(userid))
+		new_pos = direction_from_pos(direction, old_pos)
+		if self.map_data[new_pos[1]][new_pos[0]] > 0:
+			self.map_data[new_pos[1]][new_pos[0]] = 0
+			return 1
+		return 0
+	
+	def persist(self, redis):
+		redis.set("users_data", json.dumps(self.user_data))
+		redis.set("resource_map", json.dumps(self.map_data))
+
 
 class GridControlEngine(object):
 	WIDTH = 16
@@ -61,19 +111,21 @@ class GridControlEngine(object):
 		return True
 
 	def init_map(self):
-		print "Clearing Map"
-		pad_bit = self.WIDTH * self.HEIGHT + 1
-		self.redis.set("resource_map", 0)
-		self.redis.setbit("resource_map", pad_bit, 0)
-		allbits = xrange(self.WIDTH * self.HEIGHT)
+		map_data = list([0,] * 16 for i in xrange(16))
+		allbits = xrange(16 * 16)
 		resource_bits = random.sample(allbits, 10)
+		print resource_bits
 		for r in resource_bits:
-			self.redis.setbit("resource_map", r, 1)
+			x = r / 16
+			y = r % 16
+			print x, y
+			map_data[x][y] = 1
+		self.redis.set("resource_map", json.dumps(map_data))
 	
 	def tick_environment(self):
 		pass
 
-	def tick_user(self, user_id, game_data):
+	def tick_user(self, user_id, gamestate):
 		print "TICK FOR USER", user_id
 		user_vm, user_code = self.thaw_user(user_id)
 
@@ -83,7 +135,7 @@ class GridControlEngine(object):
 			return
 
 		print "EXECUTING!"
-		ffi = GridControlFFI(game_data)
+		ffi = GridControlFFI(user_id, gamestate)
 		vm = GridLangVM()
 		vm.ffi = ffi.call_ffi
 		vm.set_code(user_code)
@@ -99,41 +151,26 @@ class GridControlEngine(object):
 			data = vm.freeze()
 			self.freeze_user_vm(user_id, data)
 	
-	def __old_random_walk(self):
-		# blah stupid random walk
-		walk = tuple(random.sample([1, 1, -1, -1], 2))
-		new_loc = map(operator.add, user_hash[userid], walk)
-		for i, s in enumerate([self.WIDTH, self.HEIGHT]):
-			if new_loc[i] < 0:
-				new_loc[i] = (s - 1)
-			elif new_loc[i] > (s - 1):
-				new_loc[i] = 0
-		user_hash[userid] = "{0},{1}".format(new_loc[0], new_loc[1])
-
 	def tick_users(self):
 		"""Activate all active users"""
 		active_users = self.redis.smembers("active_users")
 		if active_users is None:
 			return
 
-		user_hash_raw = self.redis.hgetall("users_hash")
-		user_hash = {}
-		for k, v in user_hash_raw.iteritems():
-			user_hash[k] = tuple(int(i) for i in v.split(","))
+		resource_map_raw = self.redis.get("resource_map")
+		users_data_raw = self.redis.get("users_data")
+		if users_data_raw is None:
+			users_data_raw = "{}"
 
-		game_data = 10
+		gamestate = GameState(resource_map_raw, users_data_raw)
 		
 		for userid in active_users:
-			if userid not in user_hash:
+			if userid not in gamestate.user_data:
 				# new user, place them on map somewhere
-				user_hash[userid] = (5, 5)
-			self.tick_user(userid, game_data)
+				gamestate.spawn_user(userid)
+			self.tick_user(userid, gamestate)
 
-			# blah
-			new_loc = [5, 5]
-			user_hash[userid] = "{0},{1}".format(new_loc[0], new_loc[1])
-		self.redis.delete("users_hash")
-		self.redis.hmset("users_hash", user_hash)
+		gamestate.persist(self.redis)
 	
 	def emit_tick(self):
 		print "EMIT TICK TO STREAMING CLIENTS"

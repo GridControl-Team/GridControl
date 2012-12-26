@@ -32,29 +32,21 @@ class StreamComm(SocketConnection):
 
 	def on_get_map(self, val):
 		print "PUSHING MAP UPDATE TO USER"
-		ba = bitarray.bitarray()
-		try:
-			ba.frombytes(val)
-		except UnicodeDecodeError:
-			# didn't have property data here
-			return
-		rmap = map(int, ba.tolist())[:16*16]
+		map_data = json.loads(val)
 		msg = {
 			'type': 'map',
-			'content': rmap,
+			'content': map_data,
 		}
 		self.send(json.dumps(msg))
 
 	def push_user_update(self):
-		self.redis.hgetall("users_hash", self.on_get_user)
+		self.redis.get("users_data", self.on_get_users)
 
-	def on_get_user(self, val):
+	def on_get_users(self, val):
 		print "PUSHING USER UPDATE TO USER"
-		user_hash = {}
-		for k, v in val.iteritems():
-			user_hash[k] = tuple(int(i) for i in v.split(","))
+		users = json.loads(val)
 		msg = {
 			'type': 'users',
-			'content': user_hash,
+			'content': users,
 		}
 		self.send(json.dumps(msg))

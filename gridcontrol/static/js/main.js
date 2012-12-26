@@ -56,12 +56,14 @@
 	screen.update_map = function(resource_map) {
 		console.log("Updating map");
 		this.$el.empty();
-		_.each(resource_map, function(v) {
-			if (v === 1) {
-				this.$el.append("<div class='grid grid-resource'>$</div>");
-			} else {
-				this.$el.append("<div class='grid grid-ground'>_</div>");
-			}
+		_.each(resource_map, function(row) {
+			_.each(row, function(v) {
+				if (v === 1) {
+					this.$el.append("<div class='grid grid-resource'>$</div>");
+				} else {
+					this.$el.append("<div class='grid grid-ground'>_</div>");
+				}
+			}, this);
 		}, this);
 	};
 
