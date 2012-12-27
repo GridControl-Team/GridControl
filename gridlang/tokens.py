@@ -30,13 +30,13 @@ class TOKEN(object):
 		return i
 
 class TOKEN_INT(TOKEN):
-	r = r'^\d+$'
+	r = r'^-?\d+$'
 	@classmethod
 	def emit(cls, i):
 		return int(i)
 
 class TOKEN_FLOAT(TOKEN):
-	r = r'^\d+\.\d+$'
+	r = r'^-?\d+\.\d+$'
 	@classmethod
 	def emit(cls, i):
 		return float(i)
