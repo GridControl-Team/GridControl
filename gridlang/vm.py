@@ -69,6 +69,24 @@ class GridLangVM(object):
 		self.data.extend(args)
 		self.trace("Appending", args, self.data)
 	
+	def peek(self, addr):
+		"""Look at addr in stack"""
+		try:
+			return self.data[addr]
+		except IndexError:
+			raise GridLangExecutionException("Invalid Stack Access")
+
+	def poke(self, addr, val):
+		"""Look at addr in stack"""
+		try:
+			self.data[addr] = val
+		except IndexError:
+			raise GridLangExecutionException("Invalid Stack Access")
+	
+	def here(self):
+		"""Get current address in stack"""
+		return len(self.data)
+	
 	def eval(self, i):
 		"""If i is not a scalar resolve it out of the registry"""
 		if type(i) in (int, float):

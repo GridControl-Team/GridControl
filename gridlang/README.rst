@@ -111,6 +111,10 @@ PUSH     <VAL>  0      1       PUSH <VAL> on stack
 POP      --     1      0       Discard top value from stack
 SWAP     --     2      2       Take top two values from stack and swap them
 DUP      --     1      2       Take top value of stack and duplicate it
+HERE     --     0      1       Returns current location of stack
+PEEK     --     1      1       Push value at given location in stack
+POKE     --     2      0       Take a, b from stack, and set location a in
+                               stack to value b
 =======  =====  =====  ======  ================================================
 
 Registry Operations

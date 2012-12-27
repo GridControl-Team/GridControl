@@ -67,6 +67,27 @@ class DUP_OPCODE(OPCODE):
 		vm.append(a)
 		vm.append(a)
 
+class PEEK_OPCODE(OPCODE):
+	s = 'PEEK'
+	@classmethod
+	def run(cls, args, vm):
+		a = vm.pop()
+		val = vm.peek(a)
+		vm.append(val)
+
+class POKE_OPCODE(OPCODE):
+	s = 'POKE'
+	@classmethod
+	def run(cls, args, vm):
+		addr, val = vm.pop(2)
+		vm.poke(addr, val)
+
+class HERE_OPCODE(OPCODE):
+	s = 'HERE'
+	@classmethod
+	def run(cls, args, vm):
+		vm.append(vm.here())
+
 class STORE_OPCODE(OPCODE):
 	s = 'STORE'
 	@classmethod
