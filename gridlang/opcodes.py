@@ -154,7 +154,7 @@ class PRINT_OPCODE(OPCODE):
 		print val
 
 class END_OPCODE(OPCODE):
-	s = 'END'
+	s = ['EXIT', 'END']
 	@classmethod
 	def run(cls, args, vm):
 		pass
