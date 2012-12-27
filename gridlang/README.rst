@@ -71,7 +71,7 @@ stores is popped off the stack).  After registering ``foo``, you can now
     PUSH foo
     PRINT
 
-This will print ``1``.
+This will print ``1``. Keys can be anything that isn't a literal.
 
 Since ``PUSH`` is a very common operation, GridLang supports a simple sugar
 using ``<<``.  Any value following ``<<`` is pushed onto the stack before
@@ -96,6 +96,78 @@ Is exactly equivalent to:
 Note that ``<<`` does not care about the arity of the operation, thus it is
 legal to do ``ADD << 1 2 3`` (``ADD`` will add 2 + 3) or ``ADD << 1`` (add will
 add 1 + whatever is on top of the stack).
+
+Constants and Control Flow
+--------------------------
+
+Constants are determined at compile time, either introduced to the VM from
+an outside source (in the case of running code in GridControl, the game
+introduces some constants to represent bot commands and the cardinal
+directions), or introduced in code.  A constant is just any label prefixed
+with ``@``:
+
+::
+    
+    @MYCONSTANT
+
+A constant by itself on a line defines the constant. In this case, since
+``@MYCONSTANT`` is on line 1 of the code, its value is now set to ``1``, and
+any reference to ``@MYCONSTANT`` is replaced at compile time with ``1``. Thus,
+the following code:
+
+::
+    
+    @MYCONSTANT
+    PRINT << @MYCONSTANT
+
+compiles to:
+
+::
+    
+    (empty line)
+    PRINT << 1
+
+Compilation does two passes to determine constants, so constants can be used
+even if they are defined later in the code.  This makes constants very useful
+as labels for ``GOTO`` and other control flow operations:
+
+::
+    
+    GOTO << @MAIN
+    PRINT << 0
+    
+    @MAIN
+    EXIT
+
+In the first pass, ``@MAIN`` is set to 4, and in the second pass, the ``GOTO``
+is compiled to ``GOTO << 4`` (technically ``PUSH 4; GOTO``, remember that
+``<<`` is sugar).  In this example, no output is actually printed, since
+execution jumps to the end of the program right away.
+
+
+Functions/Macros
+----------------
+
+Call them functions or macros, gridlang supports jumps using ``CALL`` and
+``RETURN`` operators that can jump to some piece of code and later return
+back to where it jumped from. Because gridlang keeps these jump states in
+a separate stack (the ExecStack), these calls can be nested as far as the
+stack allows.
+
+This enables compartmentalizing or reusing code.  Here is a contrived 
+example:
+
+::
+    
+    @MAIN
+    CALL @MYOWNPRINT << 1
+    CALL @MYOWNPRINT << 2
+    EXIT
+
+    @MYOWNPRINT
+    PRINT
+    RETURN
+
 
 
 GridLang Operations
