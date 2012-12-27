@@ -129,6 +129,23 @@ class TESTFGOTO_OPCODE(OPCODE):
 			jump = vm.pos + 1
 		vm.exe.append(['JUMP', jump])
 
+class CALL_OPCODE(OPCODE):
+	jump = True
+	s = 'CALL'
+	@classmethod
+	def run(cls, args, vm):
+		jump = vm.map_goto_num(args[0])
+		ret = vm.pos + 1
+		vm.exe.append(['JUMP', ret])
+		vm.exe.append(['JUMP', jump])
+
+class RETURN_OPCODE(OPCODE):
+	jump = True
+	s = 'RETURN'
+	@classmethod
+	def run(cls, args, vm):
+		pass
+
 class PRINT_OPCODE(OPCODE):
 	s = 'PRINT'
 	@classmethod

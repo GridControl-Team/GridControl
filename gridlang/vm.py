@@ -127,13 +127,12 @@ class GridLangVM(object):
 
 		# if command does not involve jumping go to next line
 		if cmd.jump == False:
-			self.exe.append(["JUMP", newp])
-
-		while 1:
+			self.pos = newp
+		else:
 			try:
 				ecmd = self.exe.pop()
 			except IndexError:
-				break
+				raise GridLangExecutionException("EXEC STACK EXHAUSTED")
 			# assume we're just JUMP-ing now
 			self.pos = ecmd[1]
 
