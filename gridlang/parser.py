@@ -11,7 +11,7 @@ class GridLangCode(object):
 	def get_line(self, ln):
 		try:
 			return self.lines[ln]
-		except IndexError:
+		except IndexError as e:
 			if ln > 0:
 				return self.lines[len(self.lines)-1]
 			else:

@@ -124,7 +124,7 @@ class TESTFGOTO_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		val = vm.pop()
-		if val == 0:
+		if val <= 0:
 			jump = vm.map_goto_num(args[0])
 		else:
 			jump = vm.pos + 1
