@@ -61,6 +61,8 @@ depending if the grid cell in the direction provided has a
 resource or not.
 
 ``@MOVE`` action will move your bot into the direction provided.
+Pushes a 1 onto the stack for now (moves atm always succeed)
 
 ``@PULL`` action will gather a resource from the direction provided.
+Pushes a 1 onto the stack for now (pulls atm always succeed)
 If there is a resource, your will gain a point.
