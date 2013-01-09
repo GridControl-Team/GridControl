@@ -44,6 +44,10 @@ html, body {
 	position: relative;
 	width: @GRID_WIDTH * @GRID_COLS;
 	height: @GRID_HEIGHT * @GRID_ROWS;
+	.grid-break {
+		float: left;
+		clear: left;
+	}
 	.grid {
 		float: left;
 		height: @GRID_WIDTH;
@@ -77,13 +81,25 @@ html, body {
 	}
 }
 
-#grid_scores {
+#grid_history {
 	float: left;
 	width: 200px;
 	padding: @GUTTER;
 	border: 1px dotted #ccc;
 	position: relative;
 	margin-left: @GUTTER;
+	ul {
+		list-style-type: none;
+		margin-left: 0px;
+		li {
+			span {
+				float: right;
+			}
+		}
+	}
+}
+
+#grid_scores {
 	ul {
 		list-style-type: none;
 		margin-left: 0px;

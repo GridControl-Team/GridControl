@@ -1,30 +1,116 @@
 from tornadio2 import TornadioRouter, SocketConnection
 import tornadoredis
 import json
-import bitarray
+
+class StateHolder(object):
+	def __init__(self):
+		self.usernames = {}
+		self.map_data = []
+		self.userscores = {}
+		self.users = {}
+		self.redis = tornadoredis.Client(selected_db=1)
+		self.pubsub = tornadoredis.Client(selected_db=1)
+		self.pubsub.connect()
+		self.pubsub.select(1)
+		self.pubsub.subscribe('global_tick', self.on_subscribed)
+		self.c = 0
+	
+	def on_subscribed(self, smt):
+		self.pubsub.listen(self.on_redis)
+
+	def on_redis(self, msg):
+		if msg.kind == 'message':
+			if msg.channel == 'global_tick' and msg.body == 'tick':
+				self.c = 4
+				self.redis.hgetall("user_usernames", self.on_get_usernames)
+				self.redis.hgetall("user_scores", self.on_get_userscores)
+				self.redis.get("users_data", self.on_get_users)
+				self.redis.get("resource_map", self.on_get_map)
+
+	def on_get_usernames(self, val):
+		self.usernames = val
+		self.next()
+	
+	def on_get_userscores(self, val):
+		self.userscores = val
+		self.next()
+
+	def on_get_map(self, val):
+		self.map_data = json.loads(val)
+		self.map_h = len(self.map_data)
+		self.map_w = len(self.map_data[0])
+		self.next()
+
+	def on_get_users(self, val):
+		if val is not None:
+			self.users = json.loads(val)
+		else:
+			self.users = None
+		self.next()
+	
+	def next(self):
+		self.c = self.c - 1
+		if self.c == 0:
+			self.redis.publish('global_tick', 'tock')
+	
+	def get_map_for(self, userid):
+		uid = str(userid)
+		map_r = 5
+		if uid in self.users:
+			x, y = self.users[uid]
+			m = []
+			for y2 in xrange(y-map_r, y+map_r + 1):
+				l = []
+				for x2 in xrange(x-map_r, x+map_r + 1):
+					y3 = y2 % self.map_h
+					x3 = x2 % self.map_w
+					l.append(self.map_data[y3][x3])
+				m.append(l)
+			return m
+		else:
+			return []
+	
+	def get_users_for(self, userid):
+		uid = str(userid)
+		x, y = self.users[uid]
+		map_r = 5
+		ret = {}
+		for user, loc in self.users.iteritems():
+			x1, y1 = loc
+			x2 = x1 - x
+			y2 = y1 - y
+			if abs(x2) <= 5 and abs(y2) <= 5:
+				ret[user] = [x2 + map_r, y2 + map_r]
+		return ret
+
+
+SH = StateHolder()
 
 class StreamComm(SocketConnection):
 	def on_open(self, request):
 		print "USER CONNECTED"
 		try:
-			userid = int(request.get_argument("userid"))
+			self.userid = int(request.get_argument("userid"))
 		except (TypeError, ValueError) as e:
-			userid = None
+			self.userid = None
 
+		global SH
+		self.state = SH
 		self.redis = tornadoredis.Client(selected_db=1)
 		self.pubsub = tornadoredis.Client(selected_db=1)
 		self.pubsub.connect()
 		self.pubsub.select(1)
-		if userid is not None:
-			channels = ['global_tick', 'user_msg_{0}'.format(userid)]
+		if self.userid is not None:
+			channels = ['global_tick', 'user_msg_{0}'.format(self.userid)]
 		else:
 			channels = ['global_tick',]
 		self.pubsub.subscribe(channels, self.on_subscribed)
 
-		self.push_user_usernames()
-		self.push_user_scores()
+		self.push_usernames()
+		self.push_userscores()
 		self.push_map_update()
 		self.push_user_update()
+		self.push_user_history()
 	
 	def on_subscribed(self, smt):
 		self.pubsub.listen(self.on_redis)
@@ -32,10 +118,12 @@ class StreamComm(SocketConnection):
 	def on_redis(self, msg):
 		if msg.kind == 'message':
 			if msg.channel == 'global_tick':
-				self.push_user_usernames()
-				self.push_user_scores()
-				self.push_map_update()
-				self.push_user_update()
+				if msg.body == 'tock':
+					self.push_usernames()
+					self.push_userscores()
+					self.push_map_update()
+					self.push_user_update()
+					self.push_user_history()
 			else:
 				msg = {
 					'type': 'exception',
@@ -43,47 +131,41 @@ class StreamComm(SocketConnection):
 				}
 				self.send(json.dumps(msg))
 
-	def push_user_usernames(self):
-		self.redis.hgetall("user_usernames", self.on_get_usernames)
-
-	def on_get_usernames(self, val):
+	def push_usernames(self):
 		msg = {
 			'type': 'username',
-			'content': val,
+			'content': self.state.usernames,
 		}
 		self.send(json.dumps(msg))
-	
-	def push_user_scores(self):
-		self.redis.hgetall("user_scores", self.on_get_userscores)
-	
-	def on_get_userscores(self, val):
+
+	def push_userscores(self):
 		msg = {
 			'type': 'scores',
-			'content': val,
+			'content': self.state.userscores,
 		}
 		self.send(json.dumps(msg))
 
 	def push_map_update(self):
-		self.redis.get("resource_map", self.on_get_map)
-
-	def on_get_map(self, val):
-		map_data = json.loads(val)
 		msg = {
 			'type': 'map',
-			'content': map_data,
+			'content': self.state.get_map_for(self.userid),
 		}
 		self.send(json.dumps(msg))
 
 	def push_user_update(self):
-		self.redis.get("users_data", self.on_get_users)
-
-	def on_get_users(self, val):
-		if val is not None:
-			users = json.loads(val)
-		else:
-			users = None
 		msg = {
 			'type': 'users',
-			'content': users,
+			'content': self.state.get_users_for(self.userid),
 		}
 		self.send(json.dumps(msg))
+
+	def push_user_history(self):
+		self.redis.lrange("user_history_{0}".format(self.userid), 0, 15, self.on_user_history)
+	
+	def on_user_history(self, val):
+		msg = {
+			'type': 'history',
+			'content': val,
+		}
+		self.send(json.dumps(msg))
+

@@ -2,16 +2,7 @@
 {% block body_class %}{{ block.super }} home{% endblock %}
 {% block sub_content %}
 	<div id="grid_screen" data-userid="{{ user.id }}"></div>
-	<div id="grid_scores">
-		<h2>Scores</h2>
-		<ul>
-		</ul>
-	</div>
+	<div id="grid_history"><h2>Bot History</h2><ul></ul></div>
 	<hr>
 	<div id="grid_panic"><span class="hide_panic"><i class="icon-remove-sign"></i> Hide</span><h1>Panic Occured!</h1><pre></pre></div>
-	<hr>
-	<div>
-		<h1>Help?</h1>
-		<p>See <a href="https://github.com/GridControl-Team/GridControl/blob/master/README.rst">the help</a></p>
-	</div>
 {% endblock %}

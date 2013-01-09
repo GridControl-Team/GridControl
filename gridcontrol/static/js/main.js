@@ -89,10 +89,21 @@
 		}, this);
 	};
 
+	screen.update_history = function(history) {
+		var $history = $("#grid_history ul");
+		$history.empty();
+		_.each(history, function(v,k ){
+			var $li = $("<li>");
+			$li.text(v);
+			$history.append($li);
+		}, this);
+	};
+
 	screen.update_map = function(resource_map) {
 		console.log("Updating map");
 		this.$el.empty();
 		_.each(resource_map, function(row) {
+			this.$el.append("<div class='grid-break'></div>");
 			_.each(row, function(v) {
 				if (v === 1) {
 					this.$el.append("<div class='grid grid-resource'>$</div>");

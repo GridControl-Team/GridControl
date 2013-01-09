@@ -43,6 +43,9 @@
 			case "exception":
 				this.screen.raise_exception(msg.content);
 				break;
+			case "history":
+				this.screen.update_history(msg.content);
+				break;
 			default:
 				console.log("Unknown message type:");
 				console.log(msg);

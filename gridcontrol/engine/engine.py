@@ -55,6 +55,9 @@ class GameState(object):
 	def add_score(self, userid):
 		self.engine.add_score(userid)
 	
+	def user_history(self, userid, cmd, val):
+		self.engine.add_history(userid, cmd, val)
+	
 	def user_look(self, userid, direction):
 		old_pos = list(self.user_data.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
@@ -109,6 +112,12 @@ class GridControlEngine(object):
 
 	def add_score(self, user_id):
 		self.redis.hincrby("user_scores", user_id, 1)
+	
+	def add_history(self, user_id, cmd, val):
+		key = "user_history_{0}".format(user_id)
+		hval = "{0}:{1}".format(cmd, val)
+		l = self.redis.lpush(key, hval)
+		self.redis.ltrim(key, 0, 10)
 	
 	def thaw_user(self, user_id):
 		vm_key = "user_vm_{0}".format(user_id)
@@ -208,6 +217,9 @@ class GridControlEngine(object):
 				channel = "user_msg_{0}".format(userid)
 				msg = "{0}\n\n{1}".format(e.traceback, e.message)
 				i = self.redis.publish(channel, msg)
+			except Exception as e:
+				print "USER {0} HAS UNCAUGHT ISSUE".format(userid)
+				print e
 
 		gamestate.persist(self.redis)
 	

@@ -18,6 +18,11 @@ class GridControlFFI(object):
 	def call_ffi(self, vm, args):
 		cmd = args[0]
 		val = args[1]
+
+		cmd_s = [c for c in ['LOOK', 'PULL', 'MOVE'] if self.CONSTANTS[c]==cmd][0]
+		val_s = [c for c in ['NORTH', 'SOUTH', 'EAST', 'WEST'] if self.CONSTANTS[c]==val][0]
+		self.gamestate.user_history(self.user_id, cmd_s, val_s)
+
 		if cmd == self.CONSTANTS.get('LOOK'):
 			return self.gamestate.user_look(self.user_id, val)
 		elif cmd == self.CONSTANTS.get('PULL'):

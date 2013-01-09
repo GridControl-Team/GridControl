@@ -7,6 +7,17 @@
 		<p>Go see your <a href="{% url account %}">Grid</a></p>
 		<p>See your <a href="{% url account_gists %}">Gists</a></p>
 		<p><a href="{% url logout %}">Log out</a></p>
+		<hr>
+		<div id="grid_scores">
+			<h2>Scores</h2>
+			<ul>
+			</ul>
+		</div>
+		<hr>
+		<div>
+			<h1>Help?</h1>
+			<p>See <a href="https://github.com/GridControl-Team/GridControl/blob/master/README.rst">the help</a></p>
+		</div>
 	</div>
 	{% block sub_content %}
 	{% endblock %}
