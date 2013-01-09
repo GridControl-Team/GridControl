@@ -7,7 +7,7 @@ OPCODES = []
 class _METAOPCODE(type):
 	def __init__(cls, name, bases, dct):
 		super(_METAOPCODE, cls).__init__(name, bases, dct)
-		if object in bases or name=="OPERATOR_OPCODE":
+		if object in bases or name in ("OPERATOR_OPCODE", "OPERATION_OPCODE"):
 			#this is base OPCODE class, let it go
 			pass
 		else:
@@ -19,6 +19,14 @@ class _METAOPERATOR_OPCODE(_METAOPCODE):
 		def _run(cls, args, vm):
 			left, right = vm.pop(2)
 			vm.append(int(cls.o(left, right)))
+		cls.run = classmethod(_run)
+
+class _METAOPERATION_OPCODE(_METAOPCODE):
+	def __init__(cls, name, bases, dct):
+		super(_METAOPERATION_OPCODE, cls).__init__(name, bases, dct)
+		def _run(cls, args, vm):
+			v = vm.pop()
+			vm.append(int(cls.o(v)))
 		cls.run = classmethod(_run)
 
 class OPCODE(object):
@@ -38,6 +46,9 @@ class OPCODE(object):
 
 class OPERATOR_OPCODE(OPCODE):
 	__metaclass__ = _METAOPERATOR_OPCODE
+	
+class OPERATION_OPCODE(OPCODE):
+	__metaclass__ = _METAOPERATION_OPCODE
 
 class PUSH_OPCODE(OPCODE):
 	s = 'PUSH'
@@ -111,9 +122,9 @@ class TESTTGOTO_OPCODE(OPCODE):
 	s = ['TESTTGOTO', 'IFTGOTO']
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.pop()
+		val, arg = vm.pop(2, t = int)
 		if val > 0:
-			jump = vm.map_goto_num(args[0])
+			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
 		vm.exe.append(['JUMP', jump])
@@ -123,9 +134,9 @@ class TESTFGOTO_OPCODE(OPCODE):
 	s = ['TESTFGOTO', 'IFFGOTO']
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.pop()
+		val, arg = vm.pop(2, t = int)
 		if val <= 0:
-			jump = vm.map_goto_num(args[0])
+			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
 		vm.exe.append(['JUMP', jump])
@@ -139,6 +150,37 @@ class CALL_OPCODE(OPCODE):
 		ret = vm.pos + 1
 		vm.exe.append(['JUMP', ret])
 		vm.exe.append(['JUMP', jump])
+
+class TESTFCALL_OPCODE(OPCODE):
+	jump = True
+	s = ['TESTFCALL', 'IFFCALL']
+	@classmethod
+	def run(cls, args, vm):
+		val, arg = vm.pop(2)
+		if val <= 0:
+			jump = vm.map_goto_num(arg)
+			ret = vm.pos + 1
+			vm.exe.append(['JUMP', ret])
+			vm.exe.append(['JUMP', jump])
+		else:
+			jump = vm.pos + 1
+			vm.exe.append(['JUMP', jump])
+
+class TESTTCALL_OPCODE(OPCODE):
+	jump = True
+	s = ['TESTTCALL', 'IFTCALL']
+	@classmethod
+	def run(cls, args, vm):
+		val, arg = vm.pop(2)
+		if val > 0:
+			jump = vm.map_goto_num(args)
+			ret = vm.pos + 1
+			vm.exe.append(['JUMP', ret])
+			vm.exe.append(['JUMP', jump])
+		else:
+			jump = vm.pos + 1
+			vm.exe.append(['JUMP', jump])
+
 
 class RETURN_OPCODE(OPCODE):
 	jump = True
@@ -172,6 +214,10 @@ class EQUAL_OPCODE(OPERATOR_OPCODE):
 	s = 'EQUAL'
 	o = operator.eq
 
+class NOTEQUAL_OPCODE(OPERATOR_OPCODE):
+	s = 'NEQUAL'
+	o = operator.ne
+
 class MULTIPLY_OPCODE(OPERATOR_OPCODE):
 	s = ['MUL', 'MULTIPLY']
 	o = operator.mul
@@ -191,6 +237,14 @@ class PLUS_OPCODE(OPERATOR_OPCODE):
 class MINUS_OPCODE(OPERATOR_OPCODE):
 	s = ['MINUS', 'SUB']
 	o = operator.sub
+
+class ABS_OPCODE(OPERATION_OPCODE):
+	s = ['ABS', 'ABSOLUTE']
+	o = operator.abs
+
+class NEG_OPCODE(OPERATION_OPCODE):
+	s = ['NEG', 'NEGATIVE']
+	o = operator.neg
 
 class MIN_OPCODE(OPERATOR_OPCODE):
 	s = ['MIN', 'MINIMUM']

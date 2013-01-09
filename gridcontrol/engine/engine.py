@@ -166,6 +166,7 @@ class GridControlEngine(object):
 		self.redis.set("resource_map", json.dumps(map_data))
 	
 	def tick_user(self, user_id, gamestate):
+		OP_LIMIT = 400
 		print "TICK FOR USER", user_id
 		user_vm, user_code = self.thaw_user(user_id)
 
@@ -184,7 +185,7 @@ class GridControlEngine(object):
 			vm.thaw(user_vm)
 		#vm.debug = True
 		try:
-			if vm.run(100) == True:
+			if vm.run(OP_LIMIT) == True:
 				vm_key = "user_vm_{0}".format(user_id)
 				print "USER PROGRAM ENDED, CLEAR VM"
 				self.redis.delete(vm_key)

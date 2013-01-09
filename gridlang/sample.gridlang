@@ -3,9 +3,9 @@
 # finds resources there
 @LOOPSTART
 FFI << @LOOK @EAST
-testtgoto @PULLEAST
+testtgoto << @PULLEAST
 FFI << @LOOK @WEST
-testtgoto @PULLWEST
+testtgoto << @PULLWEST
 
 FFI << @MOVE @SOUTH
 goto << @LOOPEND

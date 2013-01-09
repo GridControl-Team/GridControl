@@ -214,6 +214,8 @@ DIV      --     2      1       Take a, b from stack and push a / b
 MIN      --     2      1       Take a, b from stack and push the lesser value
 MAX      --     2      1       Take a, b from stack and push the larger value
 MODULO   --     2      1       Take a, b from stack and push a % b
+ABS      --     1      1       Take a from stack and push abs(a)
+NEG      --     1      1       Take a from stack and push -a
 =======  =====  =====  ======  ================================================
 
 Logical Operations
@@ -234,8 +236,11 @@ Control Flow Operations
 Command  Args   Pops   Pushes  Description
 =======  =====  =====  ======  ================================================
 GOTO     --     1      0       Take value from stack and jump to that line
-IFTGOTO  <LN>   1      0       If value from stack is > 0, jump to <LN>
-IFFGOTO  <LN>   1      0       If value from stack is 0, jump to <LN>
+IFTGOTO  --     2      0       If v, j from stack. if v > 0, jump to j
+IFFGOTO  --     2      0       If v, j from stack, if v <= 0, jump to j
+CALL     --     1      0       Take value from stack and call to that line
+IFTCALL  --     2      0       If v, j from stack, if v > 0, call j
+IFFCALL  --     2      0       If v, j from stack, if v <= 0, call j
 =======  =====  =====  ======  ================================================
 
 Debugging Operations
