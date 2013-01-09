@@ -108,6 +108,11 @@ class GridLangVM(object):
 		val = self.eval(i) - 1
 		return self.code.get_goto_line(val)
 
+	def end(self):
+		"""Stop execution, do this by
+		jumping past the end of code"""
+		self.pos = len(self.code.lines)
+
 	###### VM Execution methods ##############
 	def __run_step(self):
 		p = self.pos
@@ -128,7 +133,7 @@ class GridLangVM(object):
 
 		# if command does not involve jumping go to next line
 		if cmd.jump == False:
-			self.pos = newp
+			self.pos = max(self.pos, newp)
 		else:
 			try:
 				ecmd = self.exe.pop()

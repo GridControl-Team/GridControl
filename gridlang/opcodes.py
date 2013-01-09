@@ -158,7 +158,7 @@ class END_OPCODE(OPCODE):
 	s = ['EXIT', 'END']
 	@classmethod
 	def run(cls, args, vm):
-		pass
+		vm.end()
 
 class GREATER_OPCODE(OPERATOR_OPCODE):
 	s = 'GREATER'
