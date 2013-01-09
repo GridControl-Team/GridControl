@@ -4,6 +4,21 @@ OVERVIEW
 
 GridControl Game! Readme not done yet!
 
+===========
+HOW TO PLAY
+===========
+
+Log in with your github account.
+
+`Learn how to gridlang <https://github.com/GridControl-Team/GridControl/blob/master/gridlang/README.rst>`_
+
+`Learn how to control your bot <https://github.com/GridControl-Team/GridControl/blob/master/BOTCONTROL.rst>`_
+
+Add a `gist on github <https://gist.github.com>`_ with the file extension ``.gridlang``
+
+WIN
+
+
 =====
 SETUP
 =====
