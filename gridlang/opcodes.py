@@ -211,7 +211,7 @@ class RAND_OPCODE(OPCODE):
 
 	@classmethod
 	def run(cls, args, vm):
-		v = vm.pop(1)
+		v = vm.pop(1, t = int)
 		vm.append(random.randint(0, v))
 
 class FFI_OPCODE(OPCODE):
@@ -221,3 +221,12 @@ class FFI_OPCODE(OPCODE):
 	def run(cls, args, vm):
 		left, right = vm.pop(2)
 		vm.call_ffi(left, right)
+
+class CALLFF_OPCODE(OPCODE):
+	s = 'CALLFF'
+
+	@classmethod
+	def run(cls, args, vm):
+		v = vm.pop(1)
+		args = vm.pop(v)
+		vm.callff(*args)

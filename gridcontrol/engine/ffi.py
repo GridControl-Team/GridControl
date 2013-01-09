@@ -9,6 +9,7 @@ class GridControlFFI(object):
 		'LOOK': 1,
 		'PULL': 2,
 		'MOVE': 3,
+		'SCAN': 4,
 	}
 
 	def __init__(self, user_id, gamestate):
@@ -17,10 +18,15 @@ class GridControlFFI(object):
 
 	def call_ffi(self, vm, args):
 		cmd = args[0]
-		val = args[1]
+		val = args[1:]
 
-		cmd_s = [c for c in ['LOOK', 'PULL', 'MOVE'] if self.CONSTANTS[c]==cmd][0]
-		val_s = [c for c in ['NORTH', 'SOUTH', 'EAST', 'WEST'] if self.CONSTANTS[c]==val][0]
+		cmd_s = [c for c in ['LOOK', 'PULL', 'MOVE', 'SCAN'] if self.CONSTANTS[c]==cmd][0]
+
+		if cmd_s == 'SCAN':
+			val_s = str(val)
+		else:
+			val = val[0]
+			val_s = [c for c in ['NORTH', 'SOUTH', 'EAST', 'WEST'] if self.CONSTANTS[c]==val][0]
 		self.gamestate.user_history(self.user_id, cmd_s, val_s)
 
 		if cmd == self.CONSTANTS.get('LOOK'):
@@ -35,3 +41,6 @@ class GridControlFFI(object):
 			self.gamestate.move_user(self.user_id, val)
 			vm.steps = 0
 			return 1
+		elif cmd == self.CONSTANTS.get('SCAN'):
+			ret = self.gamestate.user_scan(self.user_id, val)
+			return ret

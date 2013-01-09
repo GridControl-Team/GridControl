@@ -27,6 +27,12 @@ class GridLangVM(object):
 			if ret is not None:
 				self.append(ret)
 	
+	def callff(self, *args):
+		if self.ffi is not None:
+			ret = self.ffi(self, args)
+			if ret is not None:
+				self.append(ret)
+	
 	def freeze(self):
 		"""Return a copy of all pertinent data structures necessary
 		to store the executable state of this vm"""
@@ -54,12 +60,15 @@ class GridLangVM(object):
 	###### VM data access methods ########
 	# These methods are used in OPCODE run method to access data, use these
 	# methods because exception handling is a good idea
-	def pop(self, n = 1):
+	def pop(self, n = 1, t = None):
 		"""Pop n items off of stack"""
 		i = len(self.data) - n
 		if i < 0:
 			raise GridLangExecutionException("Stack empty")
 		self.data, ret = self.data[:i], self.data[i:]
+		if t is not None:
+			if any(type(v) != t for v in ret):
+				raise GridLangExecutionException("Type error")
 		if n == 1:
 			ret = ret[0]
 		self.trace("Pop", n, ret, self.data)

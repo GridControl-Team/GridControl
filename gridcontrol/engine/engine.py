@@ -24,6 +24,10 @@ def direction_from_pos(direction, pos):
 			new_pos[i] = 0
 	return new_pos
 
+def vector_from_pos(vector, pos):
+	new_pos = [c % 400 for c in map(sum, zip(pos, vector))]
+	return new_pos
+
 def get_random_position(x, y):
 	return [random.randint(0, x), random.randint(0, y)]
 
@@ -61,6 +65,11 @@ class GameState(object):
 	def user_look(self, userid, direction):
 		old_pos = list(self.user_data.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
+		return self.map_data[new_pos[1]][new_pos[0]]
+
+	def user_scan(self, userid, vector):
+		old_pos = list(self.user_data.get(userid))
+		new_pos = vector_from_pos(vector, old_pos)
 		return self.map_data[new_pos[1]][new_pos[0]]
 
 	def user_pull(self, userid, direction):
@@ -216,10 +225,13 @@ class GridControlEngine(object):
 				print "USER {0} HAD VM ISSUE".format(userid)
 				channel = "user_msg_{0}".format(userid)
 				msg = "{0}\n\n{1}".format(e.traceback, e.message)
-				i = self.redis.publish(channel, msg)
+				self.redis.publish(channel, msg)
 			except Exception as e:
 				print "USER {0} HAS UNCAUGHT ISSUE".format(userid)
 				print e
+				channel = "user_msg_{0}".format(userid)
+				msg = "{0}\n\n{1}".format("GRIDLANG Exception", e.message)
+				self.redis.publish(channel, msg)
 
 		gamestate.persist(self.redis)
 	
