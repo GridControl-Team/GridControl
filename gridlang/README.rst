@@ -213,6 +213,7 @@ MUL      --     2      1       Multiply two values from stack
 DIV      --     2      1       Take a, b from stack and push a / b
 MIN      --     2      1       Take a, b from stack and push the lesser value
 MAX      --     2      1       Take a, b from stack and push the larger value
+MODULO   --     2      1       Take a, b from stack and push a % b
 =======  =====  =====  ======  ================================================
 
 Logical Operations

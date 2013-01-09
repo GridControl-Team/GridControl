@@ -176,6 +176,10 @@ class MULTIPLY_OPCODE(OPERATOR_OPCODE):
 	s = ['MUL', 'MULTIPLY']
 	o = operator.mul
 
+class MODULO_OPCODE(OPERATOR_OPCODE):
+	s = ['MODULO', 'MOD']
+	o = operator.mod
+
 class DIVIDE_OPCODE(OPERATOR_OPCODE):
 	s = ['DIV', 'DIVIDE']
 	o = operator.floordiv
