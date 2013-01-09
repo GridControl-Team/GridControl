@@ -6,6 +6,7 @@
 	GC.Comm = function(screen) {
 		console.log("Comm init!");
 		this.screen = screen;
+		this.userid = screen.userid;
 		this.channel = null;
 		this.connect();
 	};
@@ -16,7 +17,7 @@
 		if (!_.isNull(this.channel)) {
 			this.disconnect();
 		}
-		this.channel = new io.connect('//' + window.location.hostname + ':8001/tornado/stream');
+		this.channel = new io.connect('//' + window.location.hostname + ':8001/tornado/stream?userid=' + this.userid);
 		this.channel.on("message", _.bind(this.receive, this));
 
 	};
@@ -38,6 +39,9 @@
 				break;
 			case "scores":
 				this.screen.update_scores(msg.content);
+				break;
+			case "exception":
+				this.screen.raise_exception(msg.content);
 				break;
 			default:
 				console.log("Unknown message type:");

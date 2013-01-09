@@ -1,8 +1,12 @@
 {% extends "account/base.html" %}
 {% block sub_content %}
-	{% if success %}
-		<h1>{{ filename }} loaded</h1>
+	{% if filename %}
+		{% if success %}
+			<h1>{{ filename }} loaded</h1>
+		{% else %}
+			<h1>Error: {{ message }}</h1>
+		{% endif %}
 	{% else %}
-		<h1>Gist does not contain .gridlang file!</h1>
+		<h1>Gist doesn't have .gridlang file!</h1>
 	{% endif %}
 {% endblock %}

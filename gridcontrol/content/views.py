@@ -47,16 +47,16 @@ def use_gist(request, gist_id=0):
 	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
 	code = None
 	success = False
+	msg = ""
 	ctx = {}
 	gist_retriever = GistRetriever(request.user.username)
 	for gist_filename, gist_file_data in gist['files'].items():
 		if gist_filename.upper().endswith(".GRIDLANG"):
-			register_code(request.user, gist_file_data['raw_url'])
-			success = True
+			success, msg = register_code(request.user, gist_file_data['raw_url'])
+			ctx['filename'] = gist_filename
 
-	if success:
-		ctx['filename'] = gist_filename
 	ctx['success'] = success
+	ctx['message'] = msg
 	return render_to_response("account/use_gist.html", ctx, RequestContext(request))
 
 @login_required

@@ -9,6 +9,7 @@ class GridLangVM(object):
 		self.pos = 0
 		self.steps = 0
 		self.debug = False
+		self.capture_exception = False
 
 		self.code = None
 		self.ffi = None
@@ -162,12 +163,17 @@ class GridLangVM(object):
 			else:
 				return self.__run_steps(steps)
 		except GridLangException as e:
-			print "Stack:", self.data
-			print "Registry:", self.reg
+			msg = "Stack: {0}\nRegistry:{1}\n".format(str(self.data), str(self.reg))
+
 			minln = max(self.pos - 5, 0)
 			maxln = self.pos + 5
 			for i, line in enumerate(self.code.lines[minln:maxln]):
 				ln = i + minln
-				print "{0} : {1}".format("*" if (ln == self.pos) else ln, line)
+				msg = msg + "{0} : {1}\n".format("*" if (ln == self.pos) else ln, line)
+
+			if self.capture_exception:
+				e.traceback = msg
+			else:
+				print msg
 			raise e
 

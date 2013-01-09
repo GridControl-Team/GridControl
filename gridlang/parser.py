@@ -9,7 +9,13 @@ class GridLangCode(object):
 		self.mapping = {}
 	
 	def get_line(self, ln):
-		return self.lines[ln]
+		try:
+			return self.lines[ln]
+		except IndexError:
+			if ln > 0:
+				return self.lines[len(self.lines)-1]
+			else:
+				return self.lines[0]
 
 	def get_goto_line(self, src_ln):
 		return self.mapping.get(src_ln)

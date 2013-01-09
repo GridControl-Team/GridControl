@@ -19,6 +19,10 @@ html, body {
 	.box-sizing(border-box);
 }
 
+#overlord {
+	padding: @GUTTER;
+}
+
 #control_panel {
 	position: absolute;
 	top: @GUTTER;
@@ -38,7 +42,6 @@ html, body {
 	@GRID_ROWS: 16;
 	float: left;
 	position: relative;
-	margin-left: @GUTTER;
 	width: @GRID_WIDTH * @GRID_COLS;
 	height: @GRID_HEIGHT * @GRID_ROWS;
 	.grid {
@@ -121,4 +124,26 @@ html, body {
 			margin-left: 10px;
 		}
 	}
+}
+
+#grid_panic {
+	display: none;
+	position: relative;
+	border: 1px solid #ccc;
+	background-color: #fee;
+	padding: @GUTTER;
+	h1 {
+		margin: 0px;
+	}
+	.hide_panic {
+		cursor: pointer;
+		position: absolute;
+		top: @GUTTER;
+		right: @GUTTER;
+	}
+}
+
+hr{
+	clear: both;
+	margin-top: @GUTTER;
 }

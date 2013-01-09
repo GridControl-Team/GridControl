@@ -50,9 +50,22 @@
 	GC.Screen = function(e) {
 		this.$el = $(e);
 		this.user_map = {};
+		this.userid = this.$el.attr("data-userid");
+		$("#grid_panic .hide_panic").on("click", _.bind(this.hide_panic, this));
 	};
 
 	var screen = GC.Screen.prototype;
+
+	screen.raise_exception = function(msg) {
+		var $panic = $("#grid_panic");
+		$("pre", $panic).text(msg);
+		$panic.slideDown();
+	};
+
+	screen.hide_panic = function(evt) {
+		var $panic = $("#grid_panic");
+		$panic.fadeOut();
+	};
 
 	screen.update_usernames = function(usernames) {
 		this.user_map = usernames;

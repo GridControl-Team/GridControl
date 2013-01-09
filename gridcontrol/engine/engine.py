@@ -4,6 +4,7 @@ import json
 import bitarray
 
 from gridlang import GridLangVM, GridLangParser
+from gridlang.errors import *
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
 from gridcontrol.engine.ffi import GridControlFFI
@@ -43,7 +44,7 @@ class GameState(object):
 			self.spawn_resource()
 
 	def spawn_resource(self):
-		x, y = get_random_position(self.map_w, self.map_h)
+		x, y = get_random_position(self.map_w-1, self.map_h-1)
 		self.map_data[y][x] = 1
 	
 	def move_user(self, userid, direction):
@@ -98,9 +99,13 @@ class GridControlEngine(object):
 	def register_code(self, user_id, gist_url):
 		gist_retriever = GistRetriever("lol")
 		code = gist_retriever.get_file_text(gist_url)
-		compiled = GridLangParser.parse(code, constants=GridControlFFI.CONSTANTS)
-		frozen = compiled.freeze()
-		self.freeze_user_code(user_id, frozen)
+		try:
+			compiled = GridLangParser.parse(code, constants=GridControlFFI.CONSTANTS)
+			frozen = compiled.freeze()
+			self.freeze_user_code(user_id, frozen)
+			return True, ""
+		except GridLangParseException as e:
+			return False, str(e)
 
 	def add_score(self, user_id):
 		self.redis.hincrby("user_scores", user_id, 1)
@@ -154,19 +159,26 @@ class GridControlEngine(object):
 		print "EXECUTING!"
 		ffi = GridControlFFI(user_id, gamestate)
 		vm = GridLangVM()
+		vm.capture_exception = True
 		vm.ffi = ffi.call_ffi
 		vm.set_code(user_code)
 		if user_vm is not None:
 			vm.thaw(user_vm)
 		#vm.debug = True
-		if vm.run(100) == True:
+		try:
+			if vm.run(100) == True:
+				vm_key = "user_vm_{0}".format(user_id)
+				print "USER PROGRAM ENDED, CLEAR VM"
+				self.redis.delete(vm_key)
+			else:
+				print "FREEZING!"
+				data = vm.freeze()
+				self.freeze_user_vm(user_id, data)
+		except GridLangException as e:
+			print "USER ERROR, CLEAR VM"
 			vm_key = "user_vm_{0}".format(user_id)
-			print "USER PROGRAM ENDED, CLEAR VM"
 			self.redis.delete(vm_key)
-		else:
-			print "FREEZING!"
-			data = vm.freeze()
-			self.freeze_user_vm(user_id, data)
+			raise e
 	
 	def do_tick(self):
 		"""Activate all active users"""
@@ -189,7 +201,13 @@ class GridControlEngine(object):
 			if userid not in gamestate.user_data:
 				# new user, place them on map somewhere
 				gamestate.spawn_user(userid)
-			self.tick_user(userid, gamestate)
+			try:
+				self.tick_user(userid, gamestate)
+			except GridLangException as e:
+				print "USER {0} HAD VM ISSUE".format(userid)
+				channel = "user_msg_{0}".format(userid)
+				msg = "{0}\n\n{1}".format(e.traceback, e.message)
+				i = self.redis.publish(channel, msg)
 
 		gamestate.persist(self.redis)
 	
