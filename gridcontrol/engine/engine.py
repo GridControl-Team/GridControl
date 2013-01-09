@@ -17,7 +17,7 @@ def direction_from_pos(direction, pos):
 		3: [-1, 0],
 	}.get(direction)
 	new_pos = map(sum, zip(pos, delta))
-	for i, s in enumerate([16, 16]):
+	for i, s in enumerate([400, 400]):
 		if new_pos[i] < 0:
 			new_pos[i] = (s - 1)
 		elif new_pos[i] > (s - 1):
@@ -145,15 +145,15 @@ class GridControlEngine(object):
 		return True
 
 	def init_map(self):
-		map_data = list([0,] * 16 for i in xrange(16))
-		allbits = xrange(16 * 16)
-		resource_bits = random.sample(allbits, 10)
-		print resource_bits
+		w = 400
+		h = 400
+		map_data = list([0,] * w for i in xrange(h))
+		allbits = xrange(w * h)
+		resource_bits = random.sample(allbits, 400*40)
 		for r in resource_bits:
-			x = r / 16
-			y = r % 16
-			print x, y
-			map_data[x][y] = 1
+			x = r % w
+			y = r / w
+			map_data[y][x] = 1
 		self.redis.set("resource_map", json.dumps(map_data))
 	
 	def tick_user(self, user_id, gamestate):
