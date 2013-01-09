@@ -56,3 +56,11 @@ constants necessary to manipulate your bot. The constants are:
     @EAST
     @WEST
 
+``@LOOK`` action will push either a 1 or a 0 onto your stack,
+depending if the grid cell in the direction provided has a
+resource or not.
+
+``@MOVE`` action will move your bot into the direction provided.
+
+``@PULL`` action will gather a resource from the direction provided.
+If there is a resource, your will gain a point.
