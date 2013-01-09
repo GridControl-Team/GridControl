@@ -12,7 +12,7 @@ class GistRetriever:
 		If anything goes wrong, we return None. """
 
 		gist_response = requests.get("https://api.github.com/users/%s/gists" % self.user)
-		gist_json = gist_response.json
+		gist_json = gist_response.json()
 		gists = []
 		for gist_map in gist_json:
 			gists.append({'id': gist_map['id'], 'description': gist_map['description'], 'files': gist_map['files']})

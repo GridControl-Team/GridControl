@@ -49,9 +49,32 @@
 
 	GC.Screen = function(e) {
 		this.$el = $(e);
+		this.user_map = {};
 	};
 
 	var screen = GC.Screen.prototype;
+
+	screen.update_usernames = function(usernames) {
+		this.user_map = usernames;
+	};
+
+	screen.get_username = function(id) {
+		return this.user_map[id];
+	};
+
+	screen.update_scores = function(scores) {
+		var $score = $("#grid_scores ul");
+		$score.empty();
+		_.each(scores, function(v,k ){
+			username = this.get_username(k);
+			var $li = $("<li>");
+			$li.text(username);
+			var $span = $("<span>");
+			$span.text(v);
+			$li.append($span);
+			$score.append($li);
+		}, this);
+	};
 
 	screen.update_map = function(resource_map) {
 		console.log("Updating map");
@@ -70,8 +93,14 @@
 	screen.update_users = function(users) {
 		console.log("Updating users");
 		_.each(users, function(v, k) {
+			var username = this.get_username(k);
 			var $el = $("<div class='grid grid-user'>@</div>");
+			$el.attr("data-userid", k);
+			$el.attr("data-username", username);
 			$el.css({"left": v[0] * 20, "top": v[1] * 20});
+			var $span = $("<span></span>");
+			$span.text(username);
+			$el.append($span);
 			this.$el.append($el);
 		}, this);
 	};

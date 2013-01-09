@@ -20,7 +20,7 @@ gce.init_map()
 @task(name='gridcontrol.engine.register_login')
 def register_login(user):
 	gce = GridControlEngine(get_client())
-	gce.activate_user(user.id)
+	gce.activate_user(user.id, user.username)
 
 @task(name='gridcontrol.engine.register_logout')
 def register_logout(user):
@@ -35,6 +35,5 @@ def register_code(user, gist_url):
 @task(name='gridcontrol.engine.tick_all_users')
 def tick_all_users():
 	gce = GridControlEngine(get_client())
-	gce.tick_environment()
-	gce.tick_users()
+	gce.do_tick()
 	gce.emit_tick()

@@ -13,6 +13,8 @@ class StreamComm(SocketConnection):
 		self.pubsub.select(1)
 		self.pubsub.subscribe('global_tick', self.on_subscribed)
 
+		self.push_user_usernames()
+		self.push_user_scores()
 		self.push_map_update()
 		self.push_user_update()
 	
@@ -24,8 +26,32 @@ class StreamComm(SocketConnection):
 			s = {'type': 'test', 'content': 'ping'}
 			self.send(json.dumps(s))
 
+			self.push_user_usernames()
+			self.push_user_scores()
 			self.push_map_update()
 			self.push_user_update()
+
+	def push_user_usernames(self):
+		self.redis.hgetall("user_usernames", self.on_get_usernames)
+
+	def on_get_usernames(self, val):
+		print "PUSHING USERNAME UPDATE TO USER"
+		msg = {
+			'type': 'username',
+			'content': val,
+		}
+		self.send(json.dumps(msg))
+	
+	def push_user_scores(self):
+		self.redis.hgetall("user_scores", self.on_get_userscores)
+	
+	def on_get_userscores(self, val):
+		print "PUSHING USERSCORES UPDATE TO USER"
+		msg = {
+			'type': 'scores',
+			'content': val,
+		}
+		self.send(json.dumps(msg))
 
 	def push_map_update(self):
 		self.redis.get("resource_map", self.on_get_map)
@@ -44,7 +70,10 @@ class StreamComm(SocketConnection):
 
 	def on_get_users(self, val):
 		print "PUSHING USER UPDATE TO USER"
-		users = json.loads(val)
+		if val is not None:
+			users = json.loads(val)
+		else:
+			users = None
 		msg = {
 			'type': 'users',
 			'content': users,

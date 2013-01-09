@@ -33,6 +33,12 @@
 			case "users":
 				this.screen.update_users(msg.content);
 				break;
+			case "username":
+				this.screen.update_usernames(msg.content);
+				break;
+			case "scores":
+				this.screen.update_scores(msg.content);
+				break;
 			default:
 				console.log("Unknown message type:");
 				console.log(msg);

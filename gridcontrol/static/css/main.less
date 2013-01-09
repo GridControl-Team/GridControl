@@ -36,6 +36,7 @@ html, body {
 	@GRID_HEIGHT: 20px;
 	@GRID_COLS: 16;
 	@GRID_ROWS: 16;
+	float: left;
 	position: relative;
 	margin-left: @GUTTER;
 	width: @GRID_WIDTH * @GRID_COLS;
@@ -55,8 +56,39 @@ html, body {
 		background-color: green;
 	}
 	.grid-user {
+		cursor: pointer;
 		position: absolute;
 		background-color: white;
+		span {
+			display: none;
+			position: absolute;
+			left: @GRID_WIDTH;
+			top: 0px;
+			background-color: white;
+		}
+	}
+	.grid-user:hover {
+		span {
+			display: block;
+		}
+	}
+}
+
+#grid_scores {
+	float: left;
+	width: 200px;
+	padding: @GUTTER;
+	border: 1px dotted #ccc;
+	position: relative;
+	margin-left: @GUTTER;
+	ul {
+		list-style-type: none;
+		margin-left: 0px;
+		li {
+			span {
+				float: right;
+			}
+		}
 	}
 }
 
