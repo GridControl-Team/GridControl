@@ -187,6 +187,8 @@ HERE     --     0      1       Returns current location of stack
 PEEK     --     1      1       Push value at given location in stack
 POKE     --     2      0       Take a, b from stack, and set location a in
                                stack to value b
+RAND     --     1      1       Take x from stack, and push random integer
+                               between (0, x) inclusive
 =======  =====  =====  ======  ================================================
 
 Registry Operations

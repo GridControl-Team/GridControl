@@ -1,5 +1,6 @@
 from errors import GridLangPanicException
 import operator
+import random
 
 OPCODES = []
 
@@ -200,6 +201,14 @@ class PANIC_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		raise GridLangPanicException("PANIC CALLED")
+
+class RAND_OPCODE(OPCODE):
+	s = 'RAND'
+
+	@classmethod
+	def run(cls, args, vm):
+		v = vm.pop(1)
+		vm.append(random.randint(0, v))
 
 class FFI_OPCODE(OPCODE):
 	s = 'FFI'
