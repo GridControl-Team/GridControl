@@ -85,9 +85,9 @@ class GridLangParser(object):
 						if v not in constants:
 							constants[v] = src_ln + 1
 						else:
-							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v))
+							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v), src_ln)
 					else:
-						raise GridLangParseException("PARSE ERROR: NO CODE ALLOWED AFTER CONSTANT")
+						raise GridLangParseException("PARSE ERROR: NO CODE ALLOWED AFTER CONSTANT", src_ln)
 				else:
 					glc.lines.append(parts)
 					glc.mapping[src_ln] = ln
