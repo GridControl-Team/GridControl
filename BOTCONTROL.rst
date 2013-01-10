@@ -17,9 +17,9 @@ SAMPLE CODE
     # finds resources there
     @LOOPSTART
     CALLFF << @LOOK @EAST 2
-    testtgoto @PULLEAST
+    testtgoto << @PULLEAST
     CALLFF << @LOOK @WEST 2
-    testtgoto @PULLWEST
+    testtgoto << @PULLWEST
      
     CALLFF << @MOVE @SOUTH 2
     goto << @LOOPEND
@@ -29,7 +29,7 @@ SAMPLE CODE
     goto << @LOOPEND
      
     @PULLWEST
-    CALLFFI << @PULL @WEST 2
+    CALLFF << @PULL @WEST 2
     goto << @LOOPEND
      
     @LOOPEND
