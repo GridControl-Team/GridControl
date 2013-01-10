@@ -153,7 +153,8 @@ class CALL_OPCODE(OPCODE):
 	s = 'CALL'
 	@classmethod
 	def run(cls, args, vm):
-		jump = vm.map_goto_num(args[0])
+		v = vm.pop()
+		jump = vm.map_goto_num(v)
 		ret = vm.pos + 1
 		vm.exe.append(['JUMP', ret])
 		vm.exe.append(['JUMP', jump])
