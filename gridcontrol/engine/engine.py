@@ -172,7 +172,7 @@ class GridControlEngine(object):
 	
 	def tick_user(self, user_id, gamestate):
 		OP_LIMIT = 400
-		print "TICK FOR USER", user_id
+		print "TICK FOR USER {0}".format(user_id)
 		user_vm, user_code = self.thaw_user(user_id)
 
 		if user_code is None:
@@ -180,7 +180,6 @@ class GridControlEngine(object):
 			print "NO CODE, LOL"
 			return
 
-		print "EXECUTING!"
 		ffi = GridControlFFI(user_id, gamestate)
 		vm = GridLangVM()
 		vm.capture_exception = True
@@ -195,7 +194,6 @@ class GridControlEngine(object):
 				print "USER PROGRAM ENDED, CLEAR VM"
 				self.redis.delete(vm_key)
 			else:
-				print "FREEZING!"
 				data = vm.freeze()
 				self.freeze_user_vm(user_id, data)
 		except GridLangException as e:
