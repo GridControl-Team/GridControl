@@ -145,6 +145,7 @@ class GridControlEngine(object):
 		key = "user_code_{0}".format(user_id)
 		val = json.dumps(user_code)
 		self.redis.set(key, val)
+		self.clear_user_vm(user_id)
 		return True
 
 	def freeze_user_vm(self, user_id, user_vm):
@@ -152,6 +153,10 @@ class GridControlEngine(object):
 		val = json.dumps(user_vm)
 		self.redis.set(key, val)
 		return True
+
+	def clear_user_vm(self, user_id):
+		key = "user_vm_{0}".format(user_id)
+		self.redis.delete(key)
 
 	def init_map(self):
 		w = 400
