@@ -181,6 +181,8 @@ Command  Args   Pops   Pushes  Description
 =======  =====  =====  ======  ================================================
 PUSH     <VAL>  0      1       PUSH <VAL> on stack
 POP      --     1      0       Discard top value from stack
+POPN     --     1+x    0       Take value x from stack, and then discard top x
+                               values from stack
 SWAP     --     2      2       Take top two values from stack and swap them
 DUP      --     1      2       Take top value of stack and duplicate it
 HERE     --     0      1       Returns current location of stack

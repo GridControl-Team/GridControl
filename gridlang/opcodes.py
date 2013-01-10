@@ -63,6 +63,13 @@ class POP_OPCODE(OPCODE):
 	def run(cls, args, vm):
 		vm.pop()
 
+class POPN_OPCODE(OPCODE):
+	s = 'POPN'
+	@classmethod
+	def run(cls, args, vm):
+		v = vm.pop(t = int)
+		vm.pop(v)
+
 class SWAP_OPCODE(OPCODE):
 	s = 'SWAP'
 	@classmethod
