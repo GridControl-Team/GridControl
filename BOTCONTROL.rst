@@ -17,23 +17,23 @@ SAMPLE CODE
     # finds resources there
     @LOOPSTART
     CALLFF << @LOOK @EAST 2
-    testtgoto << @PULLEAST
+    IFTGOTO << @PULLEAST
     CALLFF << @LOOK @WEST 2
-    testtgoto << @PULLWEST
+    IFTGOTO << @PULLWEST
      
     CALLFF << @MOVE @SOUTH 2
-    goto << @LOOPEND
+    GOTO << @LOOPEND
      
     @PULLEAST
     CALLFF << @PULL @EAST 2
-    goto << @LOOPEND
+    GOTO << @LOOPEND
      
     @PULLWEST
     CALLFF << @PULL @WEST 2
-    goto << @LOOPEND
+    GOTO << @LOOPEND
      
     @LOOPEND
-    goto << @LOOPSTART
+    GOTO << @LOOPSTART
 
 ABOUT CODE
 ==========
