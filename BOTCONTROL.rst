@@ -62,6 +62,11 @@ bot commands. The constants are:
     @EAST
     @WEST
 
+    # Identification constants
+    @CELL_EMPTY
+    @CELL_RESOURCE
+    @CELL_ROBOT
+
 ``@LOOK`` 1 argument (direction).  It will push either a 1 or
 a 0 onto your stack, depending if the grid cell in the direction provided has a
 resource or not.
@@ -76,6 +81,17 @@ If there is a resource, your will gain a point.
 ``@SCAN`` 2 arguments (deltax, deltay). Like look, but peers in the grid cell
 relative to current bot position (e.g., [1, 0] will look east). Pushes a 1 or
 0 onto stack, depending if targeted cell has resource or not.
+
+``@NORTH``, ``@SOUTH``, ``@EAST``, and ``@WEST`` represent the cardinal directions.
+Useful for ``@LOOK`` and ``@MOVE`` commands.
+
+``@CELL_EMPTY`` is returned from ``@LOOK`` and ``@SCAN`` when it finds an empty cell.
+
+``@CELL_RESOURCE`` is returned from ``@LOOK`` and ``@SCAN`` when it finds a cell
+with a gatherable resource in it.  You'll want to ``@PULL`` it!
+
+``@CELL_ROBOT`` is returned from ``@LOOK`` and ``@SCAN`` when it finds a cell with
+a robot in it. Avoid!
 
 ==================
 THIS IS DEPRECATED

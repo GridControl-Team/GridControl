@@ -14,7 +14,11 @@ class StateHolder(object):
 		self.pubsub.connect()
 		self.pubsub.select(1)
 		self.pubsub.subscribe('global_tick', self.on_subscribed)
-		self.c = 0
+		self.c = 4
+		self.redis.hgetall("user_usernames", self.on_get_usernames)
+		self.redis.hgetall("user_scores", self.on_get_userscores)
+		self.redis.get("users_data", self.on_get_users)
+		self.redis.get("resource_map", self.on_get_map)
 	
 	def on_subscribed(self, smt):
 		self.pubsub.listen(self.on_redis)
@@ -22,6 +26,8 @@ class StateHolder(object):
 	def on_redis(self, msg):
 		if msg.kind == 'message':
 			if msg.channel == 'global_tick' and msg.body == 'tick':
+				if self.c != 0:
+					return
 				self.c = 4
 				self.redis.hgetall("user_usernames", self.on_get_usernames)
 				self.redis.hgetall("user_scores", self.on_get_userscores)
@@ -84,7 +90,7 @@ class StateHolder(object):
 					coord = (x2 % self.map_w, y2 % self.map_h)
 					if coord in self.pos_user:
 						user = self.pos_user[coord]
-						ret[user] = [x - x2 + map_r, y - y2 + map_r]
+						ret[user] = [x2 - x + map_r, y2 - y + map_r]
 			return ret
 		else:
 			return {}

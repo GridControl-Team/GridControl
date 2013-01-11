@@ -19,12 +19,7 @@ def direction_from_pos(direction, pos):
 		2: [0, 1],
 		3: [-1, 0],
 	}.get(direction)
-	new_pos = map(sum, zip(pos, delta))
-	for i, s in enumerate([MAP_WIDTH, MAP_HEIGHT]):
-		if new_pos[i] < 0:
-			new_pos[i] = (s - 1)
-		elif new_pos[i] > (s - 1):
-			new_pos[i] = 0
+	new_pos = [(pos[0] + delta[0]) % MAP_WIDTH, (pos[1] + delta[1]) % MAP_HEIGHT]
 	return new_pos
 
 def vector_from_pos(vector, pos):
@@ -67,9 +62,15 @@ class GameState(object):
 		self.pos_user[pos] = userid
 	
 	def obj_at(self, x, y):
+		print "obj_at", x, y
+		print "\n".join(str(line) for line in self.map_data)
+		print self.pos_user
+		print self.user_pos
 		m = self.map_data[y][x]
 		if m == 0 and (x, y) in self.pos_user:
+			print "returning user"
 			return 10
+		print "returning m", m
 		return m
 	
 	def get_open_position(self):
@@ -91,7 +92,12 @@ class GameState(object):
 	def move_user(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
-		self.user_pos[userid] = new_pos
+		if self.obj_at(*new_pos) == 0:
+			self.user_pos[userid] = new_pos
+			self.pos_user[tuple(new_pos)] = userid
+			del self.pos_user[tuple(old_pos)]
+			return 1
+		return 0
 	
 	def add_score(self, userid):
 		self.engine.add_score(userid)
@@ -100,13 +106,19 @@ class GameState(object):
 		self.engine.add_history(userid, cmd, val)
 	
 	def user_look(self, userid, direction):
+		print "LOOKING"
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
+		print old_pos
+		print new_pos
 		return self.obj_at(*new_pos)
 
 	def user_scan(self, userid, vector):
+		print "SCANNING"
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = vector_from_pos(vector, old_pos)
+		print old_pos
+		print new_pos
 		return self.obj_at(*new_pos)
 
 	def user_pull(self, userid, direction):
