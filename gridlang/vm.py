@@ -6,6 +6,7 @@ class GridLangVM(object):
 		self.data = []
 		self.exe = []
 		self.reg = {}
+		self.flags = set()
 		self.pos = 0
 		self.steps = 0
 		self.debug = False
@@ -42,16 +43,18 @@ class GridLangVM(object):
 			'reg': dict(self.reg),
 			'pos': self.pos,
 			'steps': self.steps,
+			'flags': list(self.flags),
 		}
 		return ret
 
 	def thaw(self, data):
 		"""Reload a previously frozen state of a vm"""
-		self.data = list(data['data'])
-		self.exe = list(data['exe'])
-		self.reg = dict(data['reg'])
-		self.pos = data['pos']
-		self.steps = data['steps']
+		self.data = list(data.get('data', []))
+		self.exe = list(data.get('exe', []))
+		self.reg = dict(data.get('reg', {}))
+		self.pos = data.get('pos', 0)
+		self.steps = data.get('steps', 0)
+		self.flags = set(data.get('flags', []))
 
 	def set_code(self, code):
 		"""Attach opcodes to this vm"""
@@ -177,10 +180,10 @@ class GridLangVM(object):
 			else:
 				return self.__run_steps(steps)
 		except GridLangException as e:
-			self.output_traceback()
+			self.output_traceback(e)
 			raise e
 
-	def output_traceback(self):
+	def output_traceback(self, e = None):
 		msg = "Stack: {0}\nExecStack: {1}\nRegistry:{2}\n".format(str(self.data), str(self.exe), str(self.reg))
 
 		minln = max(self.pos - 5, 0)
@@ -190,6 +193,7 @@ class GridLangVM(object):
 			msg = msg + "{0} : {1}\n".format("*" if (ln == self.pos) else ln, line)
 
 		if self.capture_exception:
-			e.traceback = msg
+			if e is not None:
+				e.traceback = msg
 		else:
 			print msg
