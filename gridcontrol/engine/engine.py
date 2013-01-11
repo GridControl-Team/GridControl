@@ -1,7 +1,6 @@
 import random
 import operator
 import json
-import bitarray
 
 from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *

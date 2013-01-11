@@ -255,6 +255,8 @@ IFFGOTO  --     2      0       If v, j from stack, if v <= 0, jump to j
 CALL     --     1      0       Take value from stack and call to that line
 IFTCALL  --     2      0       If v, j from stack, if v > 0, call j
 IFFCALL  --     2      0       If v, j from stack, if v <= 0, call j
+RETURN   --     -      -       Pops from the exec stack, returning to where you
+                               last ``CALL``-ed from.
 =======  =====  =====  ======  ================================================
 
 Debugging Operations

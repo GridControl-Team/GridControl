@@ -74,7 +74,7 @@ bot commands. The constants are:
 onto your stack, depending on what is located within that targeted grid cell.
 
 ``@MOVE`` 1 argument (direction).  Move your bot into the direction provided.
-Pushes a 1 onto the stack for now (moves atm always succeed)
+Pushes a 1 or 0 onto the stack depending if the move succeeded.
 
 ``@PULL`` 1 argument (direction).  Gather a resource from the direction provided.
 Pushes a 1 onto the stack for now (pulls atm always succeed)
