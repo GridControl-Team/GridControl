@@ -9,6 +9,9 @@ from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
 from gridcontrol.engine.ffi import GridControlFFI
 
+MAP_WIDTH = 11
+MAP_HEIGHT = 11
+
 def direction_from_pos(direction, pos):
 	delta = {
 		0: [0, -1],
@@ -17,7 +20,7 @@ def direction_from_pos(direction, pos):
 		3: [-1, 0],
 	}.get(direction)
 	new_pos = map(sum, zip(pos, delta))
-	for i, s in enumerate([400, 400]):
+	for i, s in enumerate([MAP_WIDTH, MAP_HEIGHT]):
 		if new_pos[i] < 0:
 			new_pos[i] = (s - 1)
 		elif new_pos[i] > (s - 1):
@@ -25,7 +28,7 @@ def direction_from_pos(direction, pos):
 	return new_pos
 
 def vector_from_pos(vector, pos):
-	new_pos = [c % 400 for c in map(sum, zip(pos, vector))]
+	new_pos = [(pos[0] + vector[0]) % MAP_WIDTH, (pos[1] + vector[1]) % MAP_HEIGHT]
 	return new_pos
 
 def get_random_position(x, y):
@@ -35,26 +38,60 @@ def get_random_position(x, y):
 class GameState(object):
 	def __init__(self, engine, map_val, user_val):
 		self.engine = engine
-		self.map_data = json.loads(map_val)
-		self.map_h = len(self.map_data)
-		self.map_w = len(self.map_data[0])
-		self.user_data = json.loads(user_val)
+		self.map_h = MAP_HEIGHT
+		self.map_w = MAP_WIDTH
+		if map_val is not None:
+			self.map_data = json.loads(map_val)
+			self.user_pos = json.loads(user_val)
+			self.pos_user = dict((tuple(v), k) for k, v in self.user_pos.iteritems())
+		else:
+			self.user_pos = {}
+			self.pos_user = {}
+			self.init_map()
+			self.init_resources()
+
+
+	def init_map(self):
+		map_data = list([0,] * MAP_WIDTH for i in xrange(MAP_HEIGHT))
+		self.map_data = map_data
+	
+	def init_resources(self):
+		for x in xrange((MAP_WIDTH * MAP_HEIGHT) / 4):
+			self.spawn_resource()
 
 	def spawn_user(self, userid):
-		self.user_data[userid] = get_random_position(self.map_w, self.map_h)
+		pos = self.get_open_position()
+		if pos is None:
+			raise GridLangException("Could not locate empty space for you! Sorry! It will try again next tick.")
+		self.user_pos[userid] = pos
+		self.pos_user[pos] = userid
+	
+	def obj_at(self, x, y):
+		m = self.map_data[y][x]
+		if m == 0 and (x, y) in self.pos_user:
+			return 10
+		return m
+	
+	def get_open_position(self):
+		for i in xrange(1000):
+			pos = get_random_position(self.map_w-1, self.map_h-1)
+			if self.obj_at(*pos) == 0:
+				return pos
+		return None
 	
 	def randomly_spawn_resource(self):
 		if random.randint(0, 5) < 2:
 			self.spawn_resource()
 
 	def spawn_resource(self):
-		x, y = get_random_position(self.map_w-1, self.map_h-1)
-		self.map_data[y][x] = 1
+		pos = self.get_open_position()
+		if pos is not None:
+			self.map_data[pos[1]][pos[0]] = 1
 	
 	def move_user(self, userid, direction):
-		old_pos = list(self.user_data.get(userid))
+		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
-		self.user_data[userid] = new_pos
+		self.user_pos[userid] = new_pos
 	
 	def add_score(self, userid):
 		self.engine.add_score(userid)
@@ -63,26 +100,26 @@ class GameState(object):
 		self.engine.add_history(userid, cmd, val)
 	
 	def user_look(self, userid, direction):
-		old_pos = list(self.user_data.get(userid))
+		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
-		return self.map_data[new_pos[1]][new_pos[0]]
+		return self.obj_at(*new_pos)
 
 	def user_scan(self, userid, vector):
-		old_pos = list(self.user_data.get(userid))
+		old_pos = list(self.user_pos.get(userid))
 		new_pos = vector_from_pos(vector, old_pos)
-		return self.map_data[new_pos[1]][new_pos[0]]
+		return self.obj_at(*new_pos)
 
 	def user_pull(self, userid, direction):
-		old_pos = list(self.user_data.get(userid))
+		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
-		if self.map_data[new_pos[1]][new_pos[0]] > 0:
+		if self.obj_at(*new_pos) == 1:
 			self.map_data[new_pos[1]][new_pos[0]] = 0
 			self.add_score(userid)
 			return 1
 		return 0
 	
 	def persist(self, redis):
-		redis.set("users_data", json.dumps(self.user_data))
+		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("resource_map", json.dumps(self.map_data))
 
 
@@ -177,18 +214,6 @@ class GridControlEngine(object):
 		key = "user_vm_{0}".format(user_id)
 		self.redis.delete(key)
 
-	def init_map(self):
-		w = 400
-		h = 400
-		map_data = list([0,] * w for i in xrange(h))
-		allbits = xrange(w * h)
-		resource_bits = random.sample(allbits, 400*40)
-		for r in resource_bits:
-			x = r % w
-			y = r / w
-			map_data[y][x] = 1
-		self.redis.set("resource_map", json.dumps(map_data))
-	
 	def tick_user(self, user_id, gamestate):
 		OP_LIMIT = 400
 		print "TICK FOR USER {0}".format(user_id)
@@ -240,15 +265,18 @@ class GridControlEngine(object):
 		
 		# tick all users
 		for userid in active_users:
-			if userid not in gamestate.user_data:
-				# new user, place them on map somewhere
-				gamestate.spawn_user(userid)
 			try:
+				if userid not in gamestate.user_pos:
+					# new user, place them on map somewhere
+					gamestate.spawn_user(userid)
 				self.tick_user(userid, gamestate)
 			except GridLangException as e:
 				print "USER {0} HAD VM ISSUE".format(userid)
 				channel = "user_msg_{0}".format(userid)
-				msg = "{0}\n\n{1}".format(e.traceback, e.message)
+				if hasattr(e, 'traceback'):
+					msg = "{0}\n\n{1}".format(e.traceback, e.message)
+				else:
+					msg = e.message
 				self.redis.publish(channel, msg)
 			except Exception as e:
 				print "USER {0} HAS UNCAUGHT ISSUE".format(userid)
