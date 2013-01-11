@@ -1,8 +1,21 @@
 {% extends "account/base.html" %}
 {% block body_class %}{{ block.super }} home{% endblock %}
 {% block sub_content %}
-	<div id="grid_screen" data-userid="{{ user.id }}"></div>
-	<div id="grid_history"><h2>Bot History</h2><ul></ul></div>
-	<hr>
-	<div id="grid_panic"><span class="hide_panic"><i class="icon-remove-sign"></i> Hide</span><h1>Panic Occured!</h1><pre></pre></div>
+	{% if is_active %}
+		<div id="grid_screen" data-userid="{{ user.id }}"></div>
+		<div id="grid_history">
+			<p><a href="{% url bot_debug %}">Bot Debug</a></p>
+			<h2>Bot History</h2>
+			<ul></ul>
+		</div>
+		<hr>
+		<div id="grid_panic"><span class="hide_panic"><i class="icon-remove-sign"></i> Hide</span><h1>Panic Occured!</h1><pre></pre></div>
+	{% else %}
+		<h2>You need to register some bot code first!</h2>
+		<ol>
+			<li>Please read the <a href="https://github.com/GridControl-Team/GridControl/blob/master/README.rst">HELP</a></li>
+			<li>Add some code to a github gist under your account (see sample file <a href="https://gist.github.com/4375072">here</a>)</li>
+			<li>Use the <a href="{% url account_gists %}">Gist Selecter</a> to select what code to associate with your bot.</li>
+		</ol>
+	{% endif %}
 {% endblock %}

@@ -14,7 +14,7 @@ def get_client():
 	)
 	return c
 
-gce = GridControlEngine(get_client())
+#gce = GridControlEngine(get_client())
 #gce.init_map()
 
 @task(name='gridcontrol.engine.register_login')

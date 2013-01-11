@@ -94,6 +94,9 @@ class GridControlEngine(object):
 		self.redis = redis
 		self.read_bit = 0
 		self.write_bit = 1
+	
+	def is_user_active(self, user_id):
+		return self.redis.sismember("active_users", user_id)
 
 	def activate_user(self, user_id, username):
 		"""Add user to set of active users.
@@ -140,6 +143,15 @@ class GridControlEngine(object):
 			user_code = GridLangCode()
 			user_code.thaw(frozen_user_code)
 		return user_vm, user_code
+
+	def get_user_code(self, user_id):
+		key = "user_code_{0}".format(user_id)
+		return json.loads(self.redis.get(key))
+
+	def get_user_vm(self, user_id):
+		key = "user_vm_{0}".format(user_id)
+		return json.loads(self.redis.get(key))
+
 
 	def freeze_user_code(self, user_id, user_code):
 		key = "user_code_{0}".format(user_id)

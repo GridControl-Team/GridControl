@@ -8,7 +8,8 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
-from gridcontrol.engine.tasks import register_login, register_code
+from gridcontrol.engine.tasks import get_client
+from gridcontrol.engine.engine import GridControlEngine
 
 def home(request):
 	ctx = {}
@@ -19,7 +20,7 @@ def logged_in(request):
 	"""Have no idea yet how to tell django-social-auth that logged-in
 	is something else. Remove this dumb redirect when this is figured out"""
 	user = request.user
-	register_login(user)
+	#register_login(user)
 	return redirect(reverse('account'))
 
 @login_required
@@ -30,8 +31,21 @@ def account_logout(request):
 @login_required
 def account(request):
 	user = request.user
-	ctx = {}
+	gce = GridControlEngine(get_client())
+	ctx = {
+		'is_active': gce.is_user_active(user.id),
+	}
 	return render_to_response("account/home.html", ctx, RequestContext(request))
+
+@login_required
+def bot_debug(request):
+	user = request.user
+	gce = GridControlEngine(get_client())
+	ctx = {
+		'code': gce.get_user_code(user.id),
+		'stack': gce.get_user_vm(user.id),
+	}
+	return render_to_response("account/bot_debug.html", ctx, RequestContext(request))
 
 @login_required
 def account_gists(request):
@@ -57,6 +71,11 @@ def use_gist(request, gist_id=0):
 
 	ctx['success'] = success
 	ctx['message'] = msg
+
+	user = request.user
+	gce = GridControlEngine(get_client())
+	gce.activate_user(user.id, user.username)
+
 	return render_to_response("account/use_gist.html", ctx, RequestContext(request))
 
 @login_required
