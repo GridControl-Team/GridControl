@@ -62,16 +62,15 @@ class GameState(object):
 		self.pos_user[pos] = userid
 	
 	def obj_at(self, x, y):
-		print "obj_at", x, y
-		print "\n".join(str(line) for line in self.map_data)
-		print self.pos_user
-		print self.user_pos
 		m = self.map_data[y][x]
 		if m == 0 and (x, y) in self.pos_user:
-			print "returning user"
 			return 10
-		print "returning m", m
 		return m
+
+	def user_at(self, x, y):
+		c = (x, y)
+		if c in self.pos_user:
+			return self.pos_user[c]
 	
 	def get_open_position(self):
 		for i in xrange(1000):
@@ -106,19 +105,16 @@ class GameState(object):
 		self.engine.add_history(userid, cmd, val)
 	
 	def user_look(self, userid, direction):
-		print "LOOKING"
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
-		print old_pos
-		print new_pos
 		return self.obj_at(*new_pos)
 
+	def user_locate(self, userid, direction):
+		return self.user_pos.get(userid, [-1, -1])
+
 	def user_scan(self, userid, vector):
-		print "SCANNING"
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = vector_from_pos(vector, old_pos)
-		print old_pos
-		print new_pos
 		return self.obj_at(*new_pos)
 
 	def user_pull(self, userid, direction):
@@ -129,6 +125,19 @@ class GameState(object):
 			self.add_score(userid)
 			return 1
 		return 0
+
+	def user_push(self, userid, direction):
+		old_pos = list(self.user_pos.get(userid))
+		new_pos = direction_from_pos(direction, old_pos)
+		target = self.user_at(*new_pos)
+		if target is not None:
+			new_posb = direction_from_pos(direction, new_pos)
+			if self.obj_at(*new_posb) == 0:
+				self.move_user(target, direction)
+				self.move_user(userid, direction)
+				return 1
+		return 0
+
 	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))

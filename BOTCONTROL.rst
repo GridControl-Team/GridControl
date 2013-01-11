@@ -55,6 +55,9 @@ bot commands. The constants are:
     @PULL
     @MOVE
     @SCAN
+    @PUSH
+    @LOCATE
+    @IDENTIFY
     
     # Direction constants
     @NORTH
@@ -82,6 +85,17 @@ If there is a resource, your will gain a point.
 relative to current bot position (e.g., [1, 0] will look east). Pushes a 1 or
 0 onto stack, depending if targeted cell has resource or not.
 
+``@PUSH`` 1 argument (direction). Push a bot in a certain direction. You and that
+bot both move in direction given. If targeted cell has no bot, or bot's destination
+has an obstacle, ``@PUSH`` will fail.
+
+``@LOCATE`` No arguments. Pushes values x, y onto your stack, where x, y are
+the coordinates where you bot lives at.  Useful to tell if someone did a ``@PUSH``
+on you.
+
+``@IDENTIFY`` 1 argument (direction). Push onto your stack the user_id of bot
+that exists in the direction provided. Pushes ``0`` if no bot is there.
+
 ``@NORTH``, ``@SOUTH``, ``@EAST``, and ``@WEST`` represent the cardinal directions.
 Useful for ``@LOOK`` and ``@MOVE`` commands.
 
@@ -93,68 +107,3 @@ with a gatherable resource in it.  You'll want to ``@PULL`` it!
 ``@CELL_ROBOT`` is returned from ``@LOOK`` and ``@SCAN`` when it finds a cell with
 a robot in it. Avoid!
 
-==================
-THIS IS DEPRECATED
-==================
-
-Please use the newer ``CALLFF`` methods above. ``FFI`` will be deprecated soon
-and any code that uses it will stop working!
-
-OLD SAMPLE CODE
-===============
-
-::
-    
-    # This bot will continually travel south
-    # pulling from the east or west if it
-    # finds resources there
-    @LOOPSTART
-    FFI << @LOOK @EAST
-    testtgoto @PULLEAST
-    FFI << @LOOK @WEST
-    testtgoto @PULLWEST
-     
-    FFI << @MOVE @SOUTH
-    goto << @LOOPEND
-     
-    @PULLEAST
-    FFI << @PULL @EAST
-    goto << @LOOPEND
-     
-    @PULLWEST
-    FFI << @PULL @WEST
-    goto << @LOOPEND
-     
-    @LOOPEND
-    goto << @LOOPSTART
-
-OLD ABOUT CODE
-==============
-
-As you can see, control of your bot is exposed using gridlang's
-FFI operation.  GridControl automatically injects a number of
-constants necessary to manipulate your bot. The constants are:
-
-::
-    
-    # Action constants
-    @LOOK
-    @PULL
-    @MOVE
-    
-    # Direction constants
-    @NORTH
-    @SOUTH
-    @EAST
-    @WEST
-
-``@LOOK`` action will push either a 1 or a 0 onto your stack,
-depending if the grid cell in the direction provided has a
-resource or not.
-
-``@MOVE`` action will move your bot into the direction provided.
-Pushes a 1 onto the stack for now (moves atm always succeed)
-
-``@PULL`` action will gather a resource from the direction provided.
-Pushes a 1 onto the stack for now (pulls atm always succeed)
-If there is a resource, your will gain a point.
