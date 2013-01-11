@@ -70,9 +70,8 @@ bot commands. The constants are:
     @CELL_RESOURCE
     @CELL_ROBOT
 
-``@LOOK`` 1 argument (direction).  It will push either a 1 or
-a 0 onto your stack, depending if the grid cell in the direction provided has a
-resource or not.
+``@LOOK`` 1 argument (direction).  It will push a identification constant
+onto your stack, depending on what is located within that targeted grid cell.
 
 ``@MOVE`` 1 argument (direction).  Move your bot into the direction provided.
 Pushes a 1 onto the stack for now (moves atm always succeed)
@@ -82,8 +81,9 @@ Pushes a 1 onto the stack for now (pulls atm always succeed)
 If there is a resource, your will gain a point.
 
 ``@SCAN`` 2 arguments (deltax, deltay). Like look, but peers in the grid cell
-relative to current bot position (e.g., [1, 0] will look east). Pushes a 1 or
-0 onto stack, depending if targeted cell has resource or not.
+relative to current bot position (e.g., [1, 0] will look east). Pushes an 
+identification constant onto your stack, depending on what is located at targeted
+cell.
 
 ``@PUSH`` 1 argument (direction). Push a bot in a certain direction. You and that
 bot both move in direction given. If targeted cell has no bot, or bot's destination
