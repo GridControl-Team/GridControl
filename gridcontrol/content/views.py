@@ -8,7 +8,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
-from gridcontrol.engine.tasks import get_client
+from gridcontrol.engine.tasks import get_client, register_code
 from gridcontrol.engine.engine import GridControlEngine
 
 def home(request):

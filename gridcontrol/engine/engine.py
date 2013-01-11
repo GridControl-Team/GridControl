@@ -146,12 +146,19 @@ class GridControlEngine(object):
 
 	def get_user_code(self, user_id):
 		key = "user_code_{0}".format(user_id)
-		return json.loads(self.redis.get(key))
+		val = self.redis.get(key)
+		if val is not None:
+			return json.loads(val)
+		else:
+			return []
 
 	def get_user_vm(self, user_id):
 		key = "user_vm_{0}".format(user_id)
-		return json.loads(self.redis.get(key))
-
+		val = self.redis.get(key)
+		if val is not None:
+			return json.loads(val)
+		else:
+			return {}
 
 	def freeze_user_code(self, user_id, user_code):
 		key = "user_code_{0}".format(user_id)
@@ -190,6 +197,7 @@ class GridControlEngine(object):
 		if user_code is None:
 			# no code?
 			print "NO CODE, LOL"
+			self.deactivate_user(user_id)
 			return
 
 		ffi = GridControlFFI(user_id, gamestate)
@@ -198,20 +206,20 @@ class GridControlEngine(object):
 		vm.ffi = ffi.call_ffi
 		vm.set_code(user_code)
 		if user_vm is not None:
-			vm.thaw(user_vm)
+			flags = user_vm.get('flags')
+			if not ('end' in flags or 'crash' in flags):
+				vm.thaw(user_vm)
 		#vm.debug = True
 		try:
 			if vm.run(OP_LIMIT) == True:
-				vm_key = "user_vm_{0}".format(user_id)
-				print "USER PROGRAM ENDED, CLEAR VM"
-				self.redis.delete(vm_key)
-			else:
-				data = vm.freeze()
-				self.freeze_user_vm(user_id, data)
+				vm.flags.add("end")
+			data = vm.freeze()
+			self.freeze_user_vm(user_id, data)
 		except GridLangException as e:
-			print "USER ERROR, CLEAR VM"
-			vm_key = "user_vm_{0}".format(user_id)
-			self.redis.delete(vm_key)
+			print "USER ERROR, MARKING DIRTY"
+			vm.flags.add("crash")
+			data = vm.freeze()
+			self.freeze_user_vm(user_id, data)
 			raise e
 	
 	def do_tick(self):
