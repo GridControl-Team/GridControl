@@ -38,9 +38,10 @@ class GridControlFFI(object):
 			try:
 				val_s = [c for c in ['NORTH', 'SOUTH', 'EAST', 'WEST'] if self.CONSTANTS[c]==val][0]
 			except IndexError as e:
-				raise GridLangException("No such value for FFI SCAN: {0}".format(val))
+				raise GridLangException("No such value for FFI COMMAND: {0}".format(val))
 
-		self.gamestate.user_history(self.user_id, cmd_s, val_s)
+		if cmd_s in ('MOVE', 'PULL'):
+			self.gamestate.user_history(self.user_id, cmd_s, val_s)
 
 		if cmd == self.CONSTANTS.get('LOOK'):
 			return self.gamestate.user_look(self.user_id, val)
