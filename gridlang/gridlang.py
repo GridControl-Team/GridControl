@@ -3,9 +3,14 @@ from parser import GridLangParser
 from vm import GridLangVM
 from errors import GridLangParseException
 import sys
+import signal
 
 if __name__ == "__main__":
-	if len(sys.argv) > 1:
+	if len(sys.argv) > 2:
+		cmd = sys.argv[1]
+		fn = sys.argv[2]
+	elif len(sys.argv) > 1:
+		cmd = 'run'
 		fn = sys.argv[1]
 	else:
 		sys.exit("What file should I operate on?")
@@ -16,7 +21,16 @@ if __name__ == "__main__":
 			c = GridLangParser.parse(code)
 		except GridLangParseException as e:
 			sys.exit(e)
-
-	vm = GridLangVM()
-	vm.set_code(c)
-	vm.run()
+	
+	if cmd == 'parse':
+		c.print_code()
+	else:
+		vm = GridLangVM()
+		vm.set_code(c)
+		def sigint_handler(signal, frame):
+			print ""
+			print "SIGINT caught"
+			vm.output_traceback()
+			sys.exit(0)
+		signal.signal(signal.SIGINT, sigint_handler)
+		vm.run()

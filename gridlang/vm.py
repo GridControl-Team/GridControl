@@ -177,17 +177,19 @@ class GridLangVM(object):
 			else:
 				return self.__run_steps(steps)
 		except GridLangException as e:
-			msg = "Stack: {0}\nRegistry:{1}\n".format(str(self.data), str(self.reg))
-
-			minln = max(self.pos - 5, 0)
-			maxln = self.pos + 5
-			for i, line in enumerate(self.code.lines[minln:maxln]):
-				ln = i + minln
-				msg = msg + "{0} : {1}\n".format("*" if (ln == self.pos) else ln, line)
-
-			if self.capture_exception:
-				e.traceback = msg
-			else:
-				print msg
+			self.output_traceback()
 			raise e
 
+	def output_traceback(self):
+		msg = "Stack: {0}\nExecStack: {1}\nRegistry:{2}\n".format(str(self.data), str(self.exe), str(self.reg))
+
+		minln = max(self.pos - 5, 0)
+		maxln = self.pos + 5
+		for i, line in enumerate(self.code.lines[minln:maxln]):
+			ln = i + minln
+			msg = msg + "{0} : {1}\n".format("*" if (ln == self.pos) else ln, line)
+
+		if self.capture_exception:
+			e.traceback = msg
+		else:
+			print msg
