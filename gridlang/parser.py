@@ -1,4 +1,4 @@
-from tokens import TOKENS, CONSTANT
+from tokens import TOKENS, TOKEN_CONSTANT, TOKEN_PUSHSUGAR, TOKEN_JUNK, TOKEN_COMMENT
 from opcodes import PUSH_OPCODE
 from errors import *
 
@@ -33,6 +33,16 @@ class GridLangCode(object):
 		self.lines = list(data['lines'])
 		#json trounces the integer keys, so we have to fix them here
 		self.mapping = dict((int(k), int(v)) for k,v in data['mapping'].iteritems())
+	
+	def print_code(self):
+		print self.raw
+		maxln = len(self.lines)
+		maxdg = len(str(maxln))
+
+		for ln, line in enumerate(self.lines):
+			print str(ln).rjust(maxdg),
+			print str(self.get_goto_line(ln)).rjust(maxdg),
+			print line
 
 class GridLangParser(object):
 
@@ -58,32 +68,45 @@ class GridLangParser(object):
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
 			line = line.strip().upper()
-			if line.startswith("#"):
-				# this was a comment
-				line = ""
+
 			parts_raw = line.split()
 
 			parts = []
-
-			if "<<" in parts_raw:
-				i = parts_raw.index("<<")
-				parts_raw, parts_push = parts_raw[:i], parts_raw[i+1:]
-
-				for part in parts_push:
-					matched = cls.match_token(part)
-					glc.lines.append([PUSH_OPCODE.s, matched])
+			parts_push = []
+			push_sugar = False
 
 			for part in parts_raw:
 				matched = cls.match_token(part)
-				parts.append(matched)
+				if matched is not None:
+					if isinstance(matched, TOKEN_COMMENT):
+						# at first sight of TOKEN_COMMENT, discard
+						# all subsequent tokens
+						break
+					elif isinstance(matched, TOKEN_PUSHSUGAR):
+						if push_sugar:
+							raise GridLangParseException("Cannot have two TOKEN_PUSHSUGAR on one line")
+						push_sugar = True
+					elif push_sugar:
+						parts_push.append(matched)
+					else:
+						parts.append(matched)
+
+			for matched in parts_push:
+				glc.lines.append([PUSH_OPCODE.s, matched])
 
 			if len(parts):
-				if type(parts[0]) == CONSTANT:
+				if isinstance(parts[0], TOKEN_CONSTANT):
 					# handle CONSTANTs
 					if len(parts) == 1:
-						v = parts[0].val
-						if v not in constants:
-							constants[v] = src_ln + 1
+						c = parts[0].val
+						if c not in constants:
+							constants[c] = src_ln + 1
+						else:
+							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v), src_ln)
+					elif len(parts) == 2 and type(parts[1]) in (int, float):
+						c = parts[0].val
+						if c not in constants:
+							constants[c] = parts[1]
 						else:
 							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v), src_ln)
 					else:
@@ -95,7 +118,7 @@ class GridLangParser(object):
 		# postprocess CONSTANTs
 		for line in glc.lines:
 			for i, part in enumerate(line):
-				if type(part) == CONSTANT:
+				if isinstance(part, TOKEN_CONSTANT):
 					v = constants.get(part.val)
 					if v is not None:
 						line[i] = v

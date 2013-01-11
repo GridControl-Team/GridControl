@@ -144,6 +144,17 @@ is compiled to ``GOTO << 4`` (technically ``PUSH 4; GOTO``, remember that
 ``<<`` is sugar).  In this example, no output is actually printed, since
 execution jumps to the end of the program right away.
 
+A user defined constant is done by appending a scalar value after the constant
+definition.
+
+::
+    
+    @MY_CONSTANT 10
+    
+    PRINT << @MY_CONSTANT
+
+Will print out ``10``.
+
 
 Functions/Macros
 ----------------

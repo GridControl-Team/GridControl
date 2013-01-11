@@ -15,10 +15,6 @@ class _METATOKEN(type):
 			TOKENS.append(cls)
 			cls.re = re.compile(cls.r)
 
-class CONSTANT(object):
-	def __init__(self, i):
-		self.val = i
-
 class TOKEN(object):
 	__metaclass__ = _METATOKEN
 	@classmethod
@@ -28,6 +24,16 @@ class TOKEN(object):
 	@classmethod
 	def emit(cls, i):
 		return i
+
+class TOKEN_COMMENT(TOKEN):
+	r = r'^#.*$'
+	
+	def __init__(self):
+		pass
+
+	@classmethod
+	def emit(cls, i):
+		return cls()
 
 class TOKEN_INT(TOKEN):
 	r = r'^-?\d+$'
@@ -43,10 +49,33 @@ class TOKEN_FLOAT(TOKEN):
 
 class TOKEN_CONSTANT(TOKEN):
 	r = r'^@\w+$'
+
+	def __init__(self, i):
+		self.val = i
+
 	@classmethod
 	def emit(cls, i):
-		return CONSTANT(i[1:])
+		return cls(i[1:])
+
+class TOKEN_PUSHSUGAR(TOKEN):
+	r = r'^<<$'
+
+	def __init__(self):
+		pass
+
+	@classmethod
+	def emit(cls, i):
+		return cls()
 
 class TOKEN_LABEL(TOKEN):
 	r = r'^\w+$'
 
+class TOKEN_JUNK(TOKEN):
+	r = r'.*'
+
+	def __init__(self):
+		pass
+
+	@classmethod
+	def emit(cls, i):
+		return cls()

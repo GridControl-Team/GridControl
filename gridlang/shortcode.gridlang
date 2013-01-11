@@ -1,4 +1,5 @@
-store x << 12
+#comment
+store x << 12 #more comments
 store i << x
 store fact << 1
 @LOOPSTART
