@@ -7,7 +7,8 @@ class StateHolder(object):
 		self.usernames = {}
 		self.map_data = []
 		self.userscores = {}
-		self.users = {}
+		self.user_pos = {}
+		self.pos_user = {}
 		self.redis = tornadoredis.Client(selected_db=1)
 		self.pubsub = tornadoredis.Client(selected_db=1)
 		self.pubsub.connect()
@@ -43,9 +44,11 @@ class StateHolder(object):
 
 	def on_get_users(self, val):
 		if val is not None:
-			self.users = json.loads(val)
+			self.user_pos = json.loads(val)
+			self.pos_user = dict((tuple(v), k) for k, v in self.user_pos.iteritems())
 		else:
-			self.users = None
+			self.user_pos = {}
+			self.pos_user = {}
 		self.next()
 	
 	def next(self):
@@ -56,8 +59,8 @@ class StateHolder(object):
 	def get_map_for(self, userid):
 		uid = str(userid)
 		map_r = 5
-		if uid in self.users:
-			x, y = self.users[uid]
+		if uid in self.user_pos:
+			x, y = self.user_pos[uid]
 			m = []
 			for y2 in xrange(y-map_r, y+map_r + 1):
 				l = []
@@ -72,16 +75,19 @@ class StateHolder(object):
 	
 	def get_users_for(self, userid):
 		uid = str(userid)
-		x, y = self.users[uid]
 		map_r = 5
-		ret = {}
-		for user, loc in self.users.iteritems():
-			x1, y1 = loc
-			x2 = x1 - x
-			y2 = y1 - y
-			if abs(x2) <= 5 and abs(y2) <= 5:
-				ret[user] = [x2 + map_r, y2 + map_r]
-		return ret
+		if uid in self.user_pos:
+			x, y = self.user_pos[uid]
+			ret = {}
+			for y2 in xrange(y-map_r, y+map_r + 1):
+				for x2 in xrange(x-map_r, x+map_r + 1):
+					coord = (x2 % self.map_w, y2 % self.map_h)
+					if coord in self.pos_user:
+						user = self.pos_user[coord]
+						ret[user] = [x - x2 + map_r, y - y2 + map_r]
+			return ret
+		else:
+			return {}
 
 
 SH = StateHolder()
