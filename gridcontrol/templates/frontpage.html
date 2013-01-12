@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block body_class %}frontpage{% endblock %}
 {% block content %}
-	<h1>GridControl</h1>
 	<div>
-		<ul>
-			<li><a href="{% url socialauth_begin "github" %}">Log in with github</a></li>
-		</ul>
+		<h3>Free-to-play In-browser Social Massive-Multiplayer-Online Game</h3>
+		<p>How many more buzzwords could we possibly incorporate?</p>
+		<ol>
+			<li>
+		</ol>
+		<h3>Ready to play?</h3>
+		<p>This game is <i class="icon-github-alt"></i> GitHub-enabled: <a href="{% url socialauth_begin "github" %}">Log in with your GitHub account</a></p>
 	</div>
 {% endblock %}

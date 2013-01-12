@@ -1,7 +1,7 @@
 @import "utils.less";
 
-@HEADER_TYPE: sans-serif;
-@COPY_TYPE: serif;
+@HEADER_TYPE: Orbitron, sans-serif;
+@COPY_TYPE: "Droid Sans", sans-serif;
 
 @GUTTER: 20px;
 
@@ -13,6 +13,25 @@ html, body {
 	-webkit-font-smoothing: subpixel-antialiased;
 }
 
+h1, h2{
+	text-transform: uppercase;
+	font-family: @HEADER_TYPE;
+	font-weight: 900;
+	line-height: 20px;
+}
+h1 {
+	font-size: 20px;
+	line-height: 30px;
+	margin: 0px;
+}
+h2 {
+	font-size: 14px;
+}
+h3 {
+	font-size: 20px;
+	line-height: 24px;
+}
+
 * {
 	margin: 0px;
 	padding: 0px;
@@ -20,7 +39,14 @@ html, body {
 }
 
 #overlord {
-	padding: @GUTTER;
+	padding-left: @GUTTER;
+	padding-right: @GUTTER;
+}
+
+header {
+	background-color: #001;
+	color: white;
+	text-align: center;
 }
 
 #control_panel {

@@ -45,6 +45,18 @@
 			}
 	});
 
+	var BotHistoryItem = _.template("" +
+		"<li><%= item %></li>" +
+	"");
+
+	var HighScoreItem = _.template("" +
+		"<li>" +
+			"<%= username %>" +
+				"<a href=\"/view_code/<%= userid %>\" title=\"view code\"><i class=\"icon-book\"></i></a>" +
+				"<span><%= score %></span>" +
+		"</li>" +
+	"");
+
 	var GC = !root.GC ? (root.GC = {}) : root.GC;
 
 	GC.Screen = function(e) {
@@ -79,16 +91,11 @@
 		var $score = $("#grid_scores ul");
 		$score.empty();
 		_.each(scores, function(v,k ){
-			username = this.get_username(k);
-			var $li = $("<li>");
-			$li.text(username);
-			var $a = $("<a title=\"view source\"><i class=\"icon-book\"></i></a>");
-			$a.attr("href", "/view_code/" + k);
-			var $span = $("<span>");
-			$span.text(v);
-			$li.append($a);
-			$li.append($span);
-			$score.append($li);
+			var username = this.get_username(k);
+			var userid = k;
+
+			var item = HighScoreItem({username:username, userid:userid, score:v});
+			$score.append(item);
 		}, this);
 	};
 
@@ -96,14 +103,12 @@
 		var $history = $("#grid_history ul");
 		$history.empty();
 		_.each(history, function(v,k ){
-			var $li = $("<li>");
-			$li.text(v);
-			$history.append($li);
+			var item = BotHistoryItem({item: v});
+			$history.append(item);
 		}, this);
 	};
 
 	screen.update_map = function(resource_map) {
-		console.log("Updating map");
 		this.$el.empty();
 		_.each(resource_map, function(row) {
 			this.$el.append("<div class='grid-break'></div>");
@@ -118,7 +123,6 @@
 	};
 
 	screen.update_users = function(users) {
-		console.log("Updating users");
 		_.each(users, function(v, k) {
 			var username = this.get_username(k);
 			var $el = $("<div class='grid grid-user'>@</div>");

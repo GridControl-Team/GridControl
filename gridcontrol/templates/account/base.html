@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block body_class %}account{% endblock %}
 {% block content %}
-	<h1>GridControl Panel</h1>
 	<div id="control_panel">
 		<p>You're logged in as {{ user }}</p>
 		<p>Go see your <a href="{% url account %}">Grid</a></p>
@@ -15,7 +14,7 @@
 		</div>
 		<hr>
 		<div>
-			<h1>Help?</h1>
+			<h2>Help?</h2>
 			<p>See <a href="https://github.com/GridControl-Team/GridControl/blob/master/README.rst">the help</a></p>
 		</div>
 	</div>
