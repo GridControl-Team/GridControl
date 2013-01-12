@@ -121,9 +121,24 @@ header {
 		span {
 			display: none;
 			position: absolute;
-			left: @GRID_WIDTH;
+			left: @GRID_WIDTH + 12;
 			top: 0px;
-			background-color: white;
+			background-color: #eee;
+			padding: 0px 10px;
+			z-index: 9000;
+			white-space: nowrap;
+		}
+		span:before {
+			content: "";
+			position: absolute;
+			left: -@GRID_WIDTH + 1;
+			top: 0px;
+			border-width: 12px;
+			border-style: solid;
+			border-top-color: transparent;
+			border-left-color: transparent;
+			border-bottom-color: transparent;
+			border-right-color: #eee;
 		}
 	}
 	.grid-user:hover {
