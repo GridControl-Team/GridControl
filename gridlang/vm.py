@@ -9,6 +9,9 @@ class GridLangVM(object):
 		self.flags = set()
 		self.pos = 0
 		self.steps = 0
+		self.data_limit = None
+		self.exe_limit = None
+		self.reg_limit = None
 		self.debug = False
 		self.capture_exception = False
 
@@ -79,8 +82,19 @@ class GridLangVM(object):
 
 	def append(self, *args):
 		"""Push items onto stack"""
+		if self.data_limit is not None:
+			if (len(self.data) + len(args)) > self.data_limit:
+				raise GridLangExecutionException("Data Stack exhausted")
 		self.data.extend(args)
 		self.trace("Appending", args, self.data)
+
+	def append_exe(self, *args):
+		"""Push items onto stack"""
+		if self.exe_limit is not None:
+			if (len(self.exe) + len(args)) > self.exe_limit:
+				raise GridLangExecutionException("Execution Stack exhausted")
+		self.exe.extend(args)
+		self.trace("Appending", args, self.exe)
 	
 	def peek(self, addr):
 		"""Look at addr in stack"""
@@ -109,6 +123,10 @@ class GridLangVM(object):
 
 	def store(self, key, val):
 		"""Store value in the registry under key"""
+		if self.reg_limit is not None:
+			if key not in self.reg:
+				if len(self.reg) + 1 > self.reg_limit:
+					raise GridLangExecutionException("Registry exhausted")
 		self.reg[key] = val
 		self.trace("Storing", key, val, self.reg)
 	

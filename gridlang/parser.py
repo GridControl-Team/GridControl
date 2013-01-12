@@ -55,15 +55,22 @@ class GridLangParser(object):
 		return matched
 
 	@classmethod
-	def parse(cls, code, constants=None):
+	def parse(cls, code, constants=None, line_limit=None, const_limit=None):
 		glc = GridLangCode()
 		glc.raw = code
 		lines = code.split("\n")
+
+		if line_limit is not None:
+			if len(lines) > line_limit:
+				raise GridLangParseException("Too many lines")
 
 		if constants is None:
 			constants = {}
 		else:
 			constants = dict(constants)
+			if const_limit is not None:
+				# don't count predefined consts in limit
+				const_limit = const_limit + len(constants)
 
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
@@ -102,18 +109,21 @@ class GridLangParser(object):
 						if c not in constants:
 							constants[c] = src_ln + 1
 						else:
-							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(c), src_ln)
+							raise GridLangParseException("Label {0} already defined".format(c), src_ln)
 					elif len(parts) == 2 and type(parts[1]) in (int, float):
 						c = parts[0].val
 						if c not in constants:
 							constants[c] = parts[1]
 						else:
-							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(c), src_ln)
+							raise GridLangParseException("Label {0} already defined".format(c), src_ln)
 					else:
-						raise GridLangParseException("PARSE ERROR: NO CODE ALLOWED AFTER CONSTANT", src_ln)
+						raise GridLangParseException("No code allowed after constant", src_ln)
 				else:
 					glc.lines.append(parts)
 					glc.mapping[src_ln] = ln
+				if const_limit is not None:
+					if len(constants) > const_limit:
+						raise GridLangParseException("Too many constants")
 
 		# postprocess CONSTANTs
 		for line in glc.lines:

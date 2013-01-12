@@ -147,10 +147,15 @@ class GridControlEngine(object):
 	WIDTH = 16
 	HEIGHT = 16
 
-	def __init__(self, redis):
+	def __init__(self, redis, line_limit=None, const_limit=None, data_limit=None, reg_limit=None, exe_limit=None):
 		self.redis = redis
 		self.read_bit = 0
 		self.write_bit = 1
+		self.data_limit = data_limit
+		self.reg_limit = reg_limit
+		self.exe_limit = exe_limit
+		self.line_limit = line_limit
+		self.const_limit = const_limit
 	
 	def is_user_active(self, user_id):
 		return self.redis.sismember("active_users", user_id)
@@ -172,7 +177,12 @@ class GridControlEngine(object):
 		gist_retriever = GistRetriever("lol")
 		code = gist_retriever.get_file_text(gist_url)
 		try:
-			compiled = GridLangParser.parse(code, constants=GridControlFFI.CONSTANTS)
+			compiled = GridLangParser.parse(
+				code,
+				constants = GridControlFFI.CONSTANTS,
+				line_limit = self.line_limit,
+				const_limit = self.const_limit,
+			)
 			frozen = compiled.freeze()
 			self.freeze_user_code(user_id, frozen)
 			return True, ""
@@ -247,6 +257,9 @@ class GridControlEngine(object):
 
 		ffi = GridControlFFI(user_id, gamestate)
 		vm = GridLangVM()
+		vm.data_limit = self.data_limit
+		vm.exe_limit = self.exe_limit
+		vm.reg_limit = self.reg_limit
 		vm.capture_exception = True
 		vm.ffi = ffi.call_ffi
 		vm.set_code(user_code)

@@ -122,7 +122,7 @@ class GOTO_OPCODE(OPCODE):
 	def run(cls, args, vm):
 		val = vm.pop()
 		jump = vm.map_goto_num(val)
-		vm.exe.append(['JUMP', jump])
+		vm.append_exe(['JUMP', jump])
 
 class TESTTGOTO_OPCODE(OPCODE):
 	jump = True
@@ -134,7 +134,7 @@ class TESTTGOTO_OPCODE(OPCODE):
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
-		vm.exe.append(['JUMP', jump])
+		vm.append_exe(['JUMP', jump])
 
 class TESTFGOTO_OPCODE(OPCODE):
 	jump = True
@@ -146,7 +146,7 @@ class TESTFGOTO_OPCODE(OPCODE):
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
-		vm.exe.append(['JUMP', jump])
+		vm.append_exe(['JUMP', jump])
 
 class CALL_OPCODE(OPCODE):
 	jump = True
@@ -156,8 +156,8 @@ class CALL_OPCODE(OPCODE):
 		v = vm.pop()
 		jump = vm.map_goto_num(v)
 		ret = vm.pos + 1
-		vm.exe.append(['JUMP', ret])
-		vm.exe.append(['JUMP', jump])
+		vm.append_exe(['JUMP', ret])
+		vm.append_exe(['JUMP', jump])
 
 class TESTFCALL_OPCODE(OPCODE):
 	jump = True
@@ -168,11 +168,11 @@ class TESTFCALL_OPCODE(OPCODE):
 		if val <= 0:
 			jump = vm.map_goto_num(arg)
 			ret = vm.pos + 1
-			vm.exe.append(['JUMP', ret])
-			vm.exe.append(['JUMP', jump])
+			vm.append_exe(['JUMP', ret])
+			vm.append_exe(['JUMP', jump])
 		else:
 			jump = vm.pos + 1
-			vm.exe.append(['JUMP', jump])
+			vm.append_exe(['JUMP', jump])
 
 class TESTTCALL_OPCODE(OPCODE):
 	jump = True
@@ -183,11 +183,11 @@ class TESTTCALL_OPCODE(OPCODE):
 		if val > 0:
 			jump = vm.map_goto_num(args)
 			ret = vm.pos + 1
-			vm.exe.append(['JUMP', ret])
-			vm.exe.append(['JUMP', jump])
+			vm.append_exe(['JUMP', ret])
+			vm.append_exe(['JUMP', jump])
 		else:
 			jump = vm.pos + 1
-			vm.exe.append(['JUMP', jump])
+			vm.append_exe(['JUMP', jump])
 
 
 class RETURN_OPCODE(OPCODE):

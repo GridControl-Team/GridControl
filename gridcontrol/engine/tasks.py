@@ -29,12 +29,21 @@ def register_logout(user):
 
 @task(name='gridcontrol.engine.register_code')
 def register_code(user, gist_url):
-	gce = GridControlEngine(get_client())
+	gce = GridControlEngine(
+		get_client(),
+		line_limit = settings.GRIDCONTROL_LINE_LIMIT,
+		const_limit = settings.GRIDCONTROL_CONST_LIMIT,
+	)
 	success, msg = gce.register_code(user.id, gist_url)
 	return success, msg
 
 @task(name='gridcontrol.engine.tick_all_users')
 def tick_all_users():
-	gce = GridControlEngine(get_client())
+	gce = GridControlEngine(
+		get_client(),
+		data_limit = settings.GRIDCONTROL_DATA_LIMIT,
+		exe_limit = settings.GRIDCONTROL_EXE_LIMIT,
+		reg_limit = settings.GRIDCONTROL_REG_LIMIT,
+	)
 	gce.do_tick()
 	gce.emit_tick()
