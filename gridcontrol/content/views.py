@@ -79,6 +79,7 @@ def use_gist(request, gist_id=0):
 		if gist_filename.upper().endswith(".GRIDLANG"):
 			success, msg = register_code(request.user, gist_file_data['raw_url'])
 			ctx['filename'] = gist_filename
+			break
 
 	ctx['success'] = success
 	ctx['message'] = msg
