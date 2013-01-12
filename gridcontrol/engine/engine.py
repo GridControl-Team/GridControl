@@ -1,6 +1,6 @@
 import random
 import operator
-import json
+import simplejson as json
 
 from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *
@@ -204,9 +204,9 @@ class GridControlEngine(object):
 		user_vm = self.redis.get(vm_key)
 		user_code = self.redis.get(code_key)
 		if user_vm is not None:
-			user_vm = json.loads(user_vm)
+			user_vm = json.loads(user_vm, use_decimal=True)
 		if user_code is not None:
-			frozen_user_code = json.loads(user_code)
+			frozen_user_code = json.loads(user_code, use_decimal=True)
 			user_code = GridLangCode()
 			user_code.thaw(frozen_user_code)
 		return user_vm, user_code
@@ -215,7 +215,7 @@ class GridControlEngine(object):
 		key = "user_code_{0}".format(user_id)
 		val = self.redis.get(key)
 		if val is not None:
-			return json.loads(val)
+			return json.loads(val, use_decimal=True)
 		else:
 			return []
 
@@ -223,20 +223,20 @@ class GridControlEngine(object):
 		key = "user_vm_{0}".format(user_id)
 		val = self.redis.get(key)
 		if val is not None:
-			return json.loads(val)
+			return json.loads(val, use_decimal=True)
 		else:
 			return {}
 
 	def freeze_user_code(self, user_id, user_code):
 		key = "user_code_{0}".format(user_id)
-		val = json.dumps(user_code)
+		val = json.dumps(user_code, use_decimal=True)
 		self.redis.set(key, val)
 		self.clear_user_vm(user_id)
 		return True
 
 	def freeze_user_vm(self, user_id, user_vm):
 		key = "user_vm_{0}".format(user_id)
-		val = json.dumps(user_vm)
+		val = json.dumps(user_vm, use_decimal=True)
 		self.redis.set(key, val)
 		return True
 

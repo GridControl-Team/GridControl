@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 
 TOKENS = []
 
@@ -45,7 +46,7 @@ class TOKEN_FLOAT(TOKEN):
 	r = r'^-?\d+\.\d+$'
 	@classmethod
 	def emit(cls, i):
-		return float(i)
+		return Decimal(i)
 
 class TOKEN_CONSTANT(TOKEN):
 	r = r'^@\w+$'

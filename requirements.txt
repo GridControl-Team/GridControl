@@ -10,3 +10,4 @@ gunicorn
 supervisor
 requests
 bitarray
+simplejson
