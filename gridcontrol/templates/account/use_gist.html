@@ -1,12 +1,15 @@
 {% extends "account/base.html" %}
 {% block sub_content %}
-	{% if filename %}
-		{% if success %}
-			<h1>{{ filename }} loaded</h1>
+	<div class="panel" id="grid_alert">
+		{% if filename %}
+			{% if success %}
+				<h3>{{ filename }} loaded</h3>
+				<p><a href="{% url account %}"><i class="icon-reply"></i> Back to grid</a></p>
+			{% else %}
+				<h3>Error: {{ message }}</h3>
+			{% endif %}
 		{% else %}
-			<h1>Error: {{ message }}</h1>
+		<h3><i class="icon-exclamation-sign"></i> Gist doesn't have .gridlang file!</h3>
 		{% endif %}
-	{% else %}
-		<h1>Gist doesn't have .gridlang file!</h1>
-	{% endif %}
+	</div>
 {% endblock %}

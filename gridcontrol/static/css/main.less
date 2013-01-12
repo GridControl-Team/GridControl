@@ -47,12 +47,38 @@ header {
 	background-color: #001;
 	color: white;
 	text-align: center;
+	margin-bottom: @GUTTER;
+}
+
+.frontpage {
+	h3 {
+		text-align: center;
+	}
+	.hero-unit {
+		margin-top: @GUTTER;
+		margin-left: auto;
+		margin-right: auto;
+		padding: @GUTTER;
+		max-width: 500px;
+	}
+	.login {
+		text-align: center;
+	}
+}
+
+.flyout {
+	font-size: 10px;
+	float: right;
+}
+
+.account .panel {
+	float: left;
+	margin-right: @GUTTER;
+	margin-bottom: @GUTTER;
 }
 
 #control_panel {
-	position: absolute;
-	top: @GUTTER;
-	right: @GUTTER;
+	width: 200px;
 	padding: 10px;
 	background-color: #eee;
 	border: 1px solid #ccc;
@@ -62,10 +88,10 @@ header {
 }
 
 #grid_screen {
-	@GRID_WIDTH: 20px;
-	@GRID_HEIGHT: 20px;
-	@GRID_COLS: 16;
-	@GRID_ROWS: 16;
+	@GRID_WIDTH: 25px;
+	@GRID_HEIGHT: 25px;
+	@GRID_COLS: 11;
+	@GRID_ROWS: 11;
 	float: left;
 	position: relative;
 	width: @GRID_WIDTH * @GRID_COLS;
@@ -108,12 +134,10 @@ header {
 }
 
 #grid_history {
-	float: left;
 	width: 200px;
 	padding: @GUTTER;
 	border: 1px dotted #ccc;
 	position: relative;
-	margin-left: @GUTTER;
 	ul {
 		list-style-type: none;
 		margin-left: 0px;
@@ -139,14 +163,14 @@ header {
 
 .gist_list {
 	@BORDER_COLOR: #ddd;
-	margin: 20px;
 	list-style-type: none;
 	border-top: 1px solid @BORDER_COLOR;
 	border-left: 1px solid @BORDER_COLOR;
 	border-right: 1px solid @BORDER_COLOR;
+	margin-left: 0px;
 
 	.gist_item {
-		padding: 10px;
+		padding: 10px 100px 10px 10px;
 		position: relative;
 		border-bottom: 1px solid @BORDER_COLOR;
 	}
@@ -183,6 +207,27 @@ header {
 		top: @GUTTER;
 		right: @GUTTER;
 	}
+}
+
+#grid_getstarted {
+	border: 1px solid #ccc;
+	background-color: #fee;
+	padding: @GUTTER;
+	font-size: 20px;
+	max-width: 400px;
+	ol {
+		li {
+			line-height: 30px;
+		}
+	}
+}
+
+#grid_gistselect {
+	max-width: 400px;
+}
+
+#grid_alert {
+	max-width: 400px;
 }
 
 hr{

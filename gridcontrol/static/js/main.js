@@ -128,7 +128,7 @@
 			var $el = $("<div class='grid grid-user'>@</div>");
 			$el.attr("data-userid", k);
 			$el.attr("data-username", username);
-			$el.css({"left": v[0] * 20, "top": v[1] * 20});
+			$el.css({"left": v[0] * 25, "top": v[1] * 25});
 			var $span = $("<span></span>");
 			$span.text(username);
 			$el.append($span);
