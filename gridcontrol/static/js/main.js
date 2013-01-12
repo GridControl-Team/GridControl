@@ -82,8 +82,11 @@
 			username = this.get_username(k);
 			var $li = $("<li>");
 			$li.text(username);
+			var $a = $("<a title=\"view source\"><i class=\"icon-book\"></i></a>");
+			$a.attr("href", "/view_code/" + k);
 			var $span = $("<span>");
 			$span.text(v);
+			$li.append($a);
 			$li.append($span);
 			$score.append($li);
 		}, this);

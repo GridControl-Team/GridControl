@@ -2,9 +2,10 @@
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.http import Http404, HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
@@ -36,6 +37,16 @@ def account(request):
 		'is_active': gce.is_user_active(user.id),
 	}
 	return render_to_response("account/home.html", ctx, RequestContext(request))
+
+@login_required
+def view_code(request, userid):
+	gce = GridControlEngine(get_client())
+	user = get_object_or_404(User, id=userid)
+	ctx = {
+		'code': gce.get_user_code(userid),
+		'user': user,
+	}
+	return render_to_response("view_code.html", ctx, RequestContext(request))
 
 @login_required
 def bot_debug(request):
