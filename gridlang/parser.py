@@ -102,13 +102,13 @@ class GridLangParser(object):
 						if c not in constants:
 							constants[c] = src_ln + 1
 						else:
-							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v), src_ln)
+							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(c), src_ln)
 					elif len(parts) == 2 and type(parts[1]) in (int, float):
 						c = parts[0].val
 						if c not in constants:
 							constants[c] = parts[1]
 						else:
-							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(v), src_ln)
+							raise GridLangParseException("LABEL {0} ALREADY DEFINED".format(c), src_ln)
 					else:
 						raise GridLangParseException("PARSE ERROR: NO CODE ALLOWED AFTER CONSTANT", src_ln)
 				else:
