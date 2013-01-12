@@ -98,7 +98,7 @@ class POKE_OPCODE(OPCODE):
 	s = 'POKE'
 	@classmethod
 	def run(cls, args, vm):
-		val = vm.pop
+		val = vm.pop()
 		addr = vm.pop(t=int)
 		vm.poke(addr, val)
 
