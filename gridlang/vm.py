@@ -147,7 +147,10 @@ class GridLangVM(object):
 	def __run_step(self):
 		p = self.pos
 		newp = p + 1
-		line = self.code.get_line(p)
+		try:
+			line = self.code.get_line(p)
+		except GridLangExecutionEndException:
+			return False
 		cmd_s = line[0]
 		args = line[1:]
 

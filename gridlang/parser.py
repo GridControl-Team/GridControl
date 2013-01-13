@@ -12,10 +12,7 @@ class GridLangCode(object):
 		try:
 			return self.lines[ln]
 		except IndexError as e:
-			if ln > 0:
-				return self.lines[len(self.lines)-1]
-			else:
-				return self.lines[0]
+			raise GridLangExecutionEndException()
 
 	def get_goto_line(self, src_ln):
 		return self.mapping.get(src_ln)

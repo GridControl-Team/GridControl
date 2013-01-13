@@ -15,5 +15,8 @@ class GridLangParseException(GridLangException):
 class GridLangExecutionException(GridLangException):
 	pass
 
+class GridLangExecutionEndException(GridLangExecutionException):
+	pass
+
 class GridLangPanicException(GridLangException):
 	pass
