@@ -46,13 +46,7 @@ class GameState(object):
 		if user_attr is not None:
 			self.user_attr = json.loads(user_attr)
 		else:
-			print "USER INFO IS NONE"
 			self.user_attr = {}
-			for user in self.user_pos:
-				s = self.engine.redis.hget("user_scores", user)
-				self.set_user_attr(user, "resources", s)
-			print self.user_attr
-
 
 	def init_map(self):
 		map_data = list([0,] * MAP_WIDTH for i in xrange(MAP_HEIGHT))
@@ -156,7 +150,7 @@ class GameState(object):
 
 	def incr_user_attr(self, userid, attr, val):
 		key = "{0}:{1}".format(userid, attr)
-		old_val = int(self.user_attr.get(key, 0))
+		old_val = self.user_attr.get(key, 0)
 		self.user_attr[key] = old_val + val
 	
 	def persist(self, redis):
