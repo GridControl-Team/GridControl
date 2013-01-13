@@ -1,7 +1,5 @@
 import unittest
 
-from parser import GridLangParser
-from vm import GridLangVM
 from tests.utils import get_src, parse, exe, extract
 
 class TestSimpleParsing(unittest.TestCase):

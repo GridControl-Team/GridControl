@@ -87,6 +87,16 @@ class GridLangVM(object):
 				raise GridLangExecutionException("Data Stack exhausted")
 		self.data.extend(args)
 		self.trace("Appending", args, self.data)
+	
+	def appendn(self, val, n):
+		"""Push n items onto stack"""
+		if self.data_limit is not None:
+			if (len(self.data) + n) > self.data_limit:
+				raise GridLangExecutionException("Data Stack exhausted")
+		l = [val] * n
+		self.data.extend(l)
+		self.trace("Appending", l, self.data)
+
 
 	def append_exe(self, *args):
 		"""Push items onto stack"""

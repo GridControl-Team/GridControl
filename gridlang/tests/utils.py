@@ -16,6 +16,15 @@ def parse(cs):
 
 def exe(c):
 	vm = GridLangVM()
+	vm.capture_exception = True
+	vm.set_code(c)
+	vm.run()
+	return vm
+
+def exe_w_limits(c):
+	vm = GridLangVM()
+	vm.capture_exception = True
+	vm.data_limit = 99
 	vm.set_code(c)
 	vm.run()
 	return vm

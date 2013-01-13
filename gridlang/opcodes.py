@@ -86,6 +86,14 @@ class DUP_OPCODE(OPCODE):
 		vm.append(a)
 		vm.append(a)
 
+class DUPN_OPCODE(OPCODE):
+	s = 'DUPN'
+	@classmethod
+	def run(cls, args, vm):
+		n = vm.pop(t=int)
+		val = vm.pop()
+		vm.appendn(val, n)
+
 class PEEK_OPCODE(OPCODE):
 	s = 'PEEK'
 	@classmethod
