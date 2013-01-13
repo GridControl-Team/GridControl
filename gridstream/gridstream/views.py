@@ -16,7 +16,7 @@ class StateHolder(object):
 		self.pubsub.subscribe('global_tick', self.on_subscribed)
 		self.c = 4
 		self.redis.hgetall("user_usernames", self.on_get_usernames)
-		self.redis.hgetall("user_scores", self.on_get_userscores)
+		self.redis.get("user_attr", self.on_get_userattr)
 		self.redis.get("users_data", self.on_get_users)
 		self.redis.get("resource_map", self.on_get_map)
 	
@@ -30,7 +30,7 @@ class StateHolder(object):
 					return
 				self.c = 4
 				self.redis.hgetall("user_usernames", self.on_get_usernames)
-				self.redis.hgetall("user_scores", self.on_get_userscores)
+				self.redis.get("user_attr", self.on_get_userattr)
 				self.redis.get("users_data", self.on_get_users)
 				self.redis.get("resource_map", self.on_get_map)
 
@@ -38,8 +38,14 @@ class StateHolder(object):
 		self.usernames = val
 		self.next()
 	
-	def on_get_userscores(self, val):
-		self.userscores = val
+	def on_get_userattr(self, val):
+		self.userattr = json.loads(val)
+		print self.userattr
+		self.userscores = {}
+		for k, v in self.userattr.iteritems():
+			if k.endswith(":resources"):
+				uid = k.split(":")[0]
+				self.userscores[uid] = v
 		self.next()
 
 	def on_get_map(self, val):

@@ -50,7 +50,6 @@ class GridControlFFI(object):
 		elif cmd_s == 'PULL':
 			ret = self.gamestate.user_pull(self.user_id, val)
 			if ret == 1:
-				self.gamestate.add_score(self.user_id)
 				self.gamestate.user_history(self.user_id, cmd_s, val_s)
 			vm.steps = 0
 			return ret

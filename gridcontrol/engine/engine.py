@@ -30,7 +30,7 @@ def get_random_position(x, y):
 
 
 class GameState(object):
-	def __init__(self, engine, map_val, user_val, user_info):
+	def __init__(self, engine, map_val, user_val, user_attr):
 		self.engine = engine
 		self.map_h = MAP_HEIGHT
 		self.map_w = MAP_WIDTH
@@ -43,11 +43,15 @@ class GameState(object):
 			self.pos_user = {}
 			self.init_map()
 			self.init_resources()
-		if user_info is not None:
-			self.user_info = json.loads(user_info)
+		if user_attr is not None:
+			self.user_attr = json.loads(user_attr)
 		else:
 			print "USER INFO IS NONE"
-			self.user_info = {}
+			self.user_attr = {}
+			for user in self.user_pos:
+				s = self.engine.redis.hget("user_scores", user)
+				self.set_user_attr(user, "resources", s)
+			print self.user_attr
 
 
 	def init_map(self):
@@ -102,8 +106,8 @@ class GameState(object):
 			return 1
 		return 0
 	
-	def add_score(self, userid):
-		self.engine.add_score(userid)
+	def add_resource(self, userid):
+		self.incr_user_attr(userid, "resources", 1)
 	
 	def user_history(self, userid, cmd, val):
 		self.engine.add_history(userid, cmd, val)
@@ -126,7 +130,7 @@ class GameState(object):
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 1:
 			self.map_data[new_pos[1]][new_pos[0]] = 0
-			self.add_score(userid)
+			self.add_resource(userid)
 			return 1
 		return 0
 
@@ -143,17 +147,22 @@ class GameState(object):
 		return 0
 
 	def get_user_attr(self, userid, attr):
-		pass
+		key = "{0}:{1}".format(userid, attr)
+		return self.user_attr.get(key, 0)
 
 	def set_user_attr(self, userid, attr, val):
-		pass
+		key = "{0}:{1}".format(userid, attr)
+		self.user_attr[key] = val
 
 	def incr_user_attr(self, userid, attr, val):
-		pass
+		key = "{0}:{1}".format(userid, attr)
+		old_val = int(self.user_attr.get(key, 0))
+		self.user_attr[key] = old_val + val
 	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("resource_map", json.dumps(self.map_data))
+		redis.set("user_attr", json.dumps(self.user_attr))
 
 
 class GridControlEngine(object):
@@ -202,9 +211,6 @@ class GridControlEngine(object):
 		except GridLangParseException as e:
 			return False, str(e)
 
-	def add_score(self, user_id):
-		self.redis.hincrby("user_scores", user_id, 1)
-	
 	def add_history(self, user_id, cmd, val):
 		key = "user_history_{0}".format(user_id)
 		hval = "{0}:{1}".format(cmd, val)
@@ -303,9 +309,9 @@ class GridControlEngine(object):
 		users_data_raw = self.redis.get("users_data")
 		if users_data_raw is None:
 			users_data_raw = "{}"
-		user_info_raw = self.redis.get("user_info")
+		user_attr_raw = self.redis.get("user_attr")
 
-		gamestate = GameState(self, resource_map_raw, users_data_raw, user_info_raw)
+		gamestate = GameState(self, resource_map_raw, users_data_raw, user_attr_raw)
 
 		# tick environment
 		gamestate.randomly_spawn_resource()
