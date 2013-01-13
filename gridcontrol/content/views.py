@@ -44,7 +44,7 @@ def view_code(request, userid):
 	user = get_object_or_404(User, id=userid)
 	ctx = {
 		'code': gce.get_user_code(userid),
-		'user': user,
+		'botowner': user,
 	}
 	return render_to_response("view_code.html", ctx, RequestContext(request))
 
