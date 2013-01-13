@@ -30,7 +30,7 @@ def get_random_position(x, y):
 
 
 class GameState(object):
-	def __init__(self, engine, map_val, user_val):
+	def __init__(self, engine, map_val, user_val, user_info):
 		self.engine = engine
 		self.map_h = MAP_HEIGHT
 		self.map_w = MAP_WIDTH
@@ -43,6 +43,11 @@ class GameState(object):
 			self.pos_user = {}
 			self.init_map()
 			self.init_resources()
+		if user_info is not None:
+			self.user_info = json.loads(user_info)
+		else:
+			print "USER INFO IS NONE"
+			self.user_info = {}
 
 
 	def init_map(self):
@@ -137,6 +142,14 @@ class GameState(object):
 				return 1
 		return 0
 
+	def get_user_attr(self, userid, attr):
+		pass
+
+	def set_user_attr(self, userid, attr, val):
+		pass
+
+	def incr_user_attr(self, userid, attr, val):
+		pass
 	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
@@ -290,8 +303,9 @@ class GridControlEngine(object):
 		users_data_raw = self.redis.get("users_data")
 		if users_data_raw is None:
 			users_data_raw = "{}"
+		user_info_raw = self.redis.get("user_info")
 
-		gamestate = GameState(self, resource_map_raw, users_data_raw)
+		gamestate = GameState(self, resource_map_raw, users_data_raw, user_info_raw)
 
 		# tick environment
 		gamestate.randomly_spawn_resource()
