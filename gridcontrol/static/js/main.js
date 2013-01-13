@@ -46,7 +46,15 @@
 	});
 
 	var BotHistoryItem = _.template("" +
-		"<li><%= item %></li>" +
+			"<% if(success) { %>" +
+				"<li class=\"success\">" +
+				"<i class=\"icon-okay\"></i>" + 
+			"<% } else { %>" +
+				"<li class=\"fail\">" +
+				"<i class=\"icon-warning-sign\"></i>" + 
+			"<% } %>" +
+			"<%= cmd %>: <%= args %>" +
+		"</li>" +
 	"");
 
 	var HighScoreItem = _.template("" +
@@ -101,11 +109,18 @@
 
 	screen.update_history = function(history) {
 		var $history = $("#grid_history ul");
-		$history.empty();
+		var num_items = $("li", $history).length;
 		_.each(history, function(v,k ){
-			var item = BotHistoryItem({item: v});
-			$history.append(item);
+			var $item = $(BotHistoryItem({
+				cmd: v.cmd,
+				args: v.val,
+				success: v.success
+			})).hide();
+			$history.prepend($item);
+			$item.slideDown();
 		}, this);
+		var del_index = Math.max(10, history.length);
+		var $to_del = $("li", $history).slice(del_index).remove();
 	};
 
 	screen.update_map = function(resource_map) {

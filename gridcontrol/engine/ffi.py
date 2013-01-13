@@ -1,25 +1,26 @@
 from gridlang.errors import GridLangException
 
+LOCATIONS = ['HERE', 'NORTH', 'EAST', 'SOUTH', 'WEST']
+
+ACTIONS = ['LOOK', 'PULL', 'MOVE', 'SCAN', 'PUSH', 'LOCATE', 'IDENTIFY', 'INSPECT', 'PUNCH', 'CHARGE', 'PEWPEW', 'SELFDESTRUCT']
+
+IDENTIFICATION = ['CELL_EMPTY', 'CELL_RESOURCE', 'CELL_ROCK', 'CELL_ROBOT']
+
+ATTRS = ['HEALTH', 'RESOURCES', 'SHIELD', 'CALLSIGN', 'POINTS', 'STATUS']
+
+CONSTANTS = {}
+for C in [LOCATIONS, ACTIONS, IDENTIFICATION]:
+	for i, s in enumerate(C):
+		CONSTANTS[s] = i
+	
+def pluck(s, LST):
+	try:
+		return [c for c in LST if CONSTANTS[c] == s][0]
+	except IndexError as e:
+		raise GridLangException("Invalid FFI parameter: {0}".format(s))
+
+
 class GridControlFFI(object):
-	CONSTANTS = {
-		'NORTH': 0,
-		'EAST': 1,
-		'SOUTH': 2,
-		'WEST': 3,
-
-		'LOOK': 1,
-		'PULL': 2,
-		'MOVE': 3,
-		'SCAN': 4,
-		'PUSH': 5,
-		'LOCATE': 6,
-		'IDENTIFY': 7,
-
-		'CELL_EMPTY': 0,
-		'CELL_RESOURCE': 1,
-		'CELL_ROCK': 2,
-		'CELL_ROBOT': 10,
-	}
 
 	def __init__(self, user_id, gamestate):
 		self.user_id = user_id
@@ -28,43 +29,46 @@ class GridControlFFI(object):
 	def call_ffi(self, vm, args):
 		cmd = args[0]
 		val = args[1:]
+		ret = None
 
-		try:
-			cmd_s = [c for c in ['LOOK', 'PULL', 'MOVE', 'SCAN', 'LOCATE', 'PUSH', 'IDENTIFY'] if self.CONSTANTS[c]==cmd][0]
-		except IndexError as e:
-			raise GridLangException("No such command for FFI: {0}".format(cmd))
+		cmd_s = pluck(cmd, ACTIONS)
+		args_s = None
 
-		if cmd_s == 'SCAN':
-			val_s = str(val)
-		else:
-			val = val[0]
-			try:
-				val_s = [c for c in ['NORTH', 'SOUTH', 'EAST', 'WEST'] if self.CONSTANTS[c]==val][0]
-			except IndexError as e:
-				raise GridLangException("No such value for FFI COMMAND: {0}".format(val))
-
-		if cmd_s == 'LOOK':
-			return self.gamestate.user_look(self.user_id, val)
+		if cmd_s == 'SCAN': # scan operations
+			if len(val) < 2:
+				raise GridLangException("Scan needs two arguments")
+			newargs = val[:2]
+		elif cmd_s in ('SHIELD', 'CHARGE'): # one argument commands
+			if len(val) < 1:
+				raise GridLangException("{0} needs 1 argument".format(cmd_s))
+			newargs = val[:1]
+			args_s = str(val[0])
+		elif cmd_s in ('INSPECT',): # direction, attr command
+			if len(val) < 2:
+				raise GridLangException("Inspect needs two arguments")
+			dir_s = pluck(val[0], LOCATIONS)
+			attr = pluck(val[1], ATTRIBUTES)
+			newargs = val[:2]
 		elif cmd_s == 'LOCATE':
-			return self.gamestate.user_locate(self.user_id, val)
-		elif cmd_s == 'PULL':
-			ret = self.gamestate.user_pull(self.user_id, val)
-			if ret == 1:
-				self.gamestate.user_history(self.user_id, cmd_s, val_s)
+			newargs = []
+		elif cmd_s ==	'SELFDESTRUCT':
+			newargs = []
+			args_s = "BOOM!"
+		else: # takes direction argument
+			if len(val) < 1:
+				raise GridLangException("{0} needs 1 argument".format(cmd_s))
+			newargs = val[:1]
+			if cmd_s in ('PULL','MOVE', 'PUSH'):
+				args_s = pluck(val[0], LOCATIONS)
+
+		f = getattr(self.gamestate, "do_user_{0}".format(cmd_s.lower()))
+		ret = f(self.user_id, *newargs)
+
+		if args_s is not None:
+			self.gamestate.user_history(self.user_id, cmd_s, args_s, ret)
+
+		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGE', 'SELFDESTRUCT'):
 			vm.steps = 0
-			return ret
-		elif cmd_s == 'MOVE':
-			ret = self.gamestate.move_user(self.user_id, val)
-			if ret == 1:
-				self.gamestate.user_history(self.user_id, cmd_s, val_s)
-			vm.steps = 0
-			return ret
-		elif cmd_s == 'PUSH':
-			ret = self.gamestate.user_push(self.user_id, val)
-			if ret == 1:
-				self.gamestate.user_history(self.user_id, cmd_s, val_s)
-			vm.steps = 0
-			return ret
-		elif cmd_s == 'SCAN':
-			ret = self.gamestate.user_scan(self.user_id, val)
-			return ret
+
+		return ret
+

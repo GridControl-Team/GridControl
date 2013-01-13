@@ -1,6 +1,6 @@
 from tornadio2 import TornadioRouter, SocketConnection
 import tornadoredis
-import json
+import simplejson as json
 
 class StateHolder(object):
 	def __init__(self):
@@ -39,8 +39,7 @@ class StateHolder(object):
 		self.next()
 	
 	def on_get_userattr(self, val):
-		self.userattr = json.loads(val)
-		print self.userattr
+		self.userattr = json.loads(val, use_decimal=True)
 		self.userscores = {}
 		for k, v in self.userattr.iteritems():
 			if k.endswith(":resources"):
@@ -49,14 +48,14 @@ class StateHolder(object):
 		self.next()
 
 	def on_get_map(self, val):
-		self.map_data = json.loads(val)
+		self.map_data = json.loads(val, use_decimal=True)
 		self.map_h = len(self.map_data)
 		self.map_w = len(self.map_data[0])
 		self.next()
 
 	def on_get_users(self, val):
 		if val is not None:
-			self.user_pos = json.loads(val)
+			self.user_pos = json.loads(val, use_decimal=True)
 			self.pos_user = dict((tuple(v), k) for k, v in self.user_pos.iteritems())
 		else:
 			self.user_pos = {}
@@ -112,6 +111,8 @@ class StreamComm(SocketConnection):
 		except (TypeError, ValueError) as e:
 			self.userid = None
 
+		self.last_history_ts = None
+
 		global SH
 		self.state = SH
 		self.redis = tornadoredis.Client(selected_db=1)
@@ -147,43 +148,53 @@ class StreamComm(SocketConnection):
 					'type': 'exception',
 					'content': msg.body,
 				}
-				self.send(json.dumps(msg))
+				self.send(json.dumps(msg, use_decimal=True))
 
 	def push_usernames(self):
 		msg = {
 			'type': 'username',
 			'content': self.state.usernames,
 		}
-		self.send(json.dumps(msg))
+		self.send(json.dumps(msg, use_decimal=True))
 
 	def push_userscores(self):
 		msg = {
 			'type': 'scores',
 			'content': self.state.userscores,
 		}
-		self.send(json.dumps(msg))
+		self.send(json.dumps(msg, use_decimal=True))
 
 	def push_map_update(self):
 		msg = {
 			'type': 'map',
 			'content': self.state.get_map_for(self.userid),
 		}
-		self.send(json.dumps(msg))
+		self.send(json.dumps(msg, use_decimal=True))
 
 	def push_user_update(self):
 		msg = {
 			'type': 'users',
 			'content': self.state.get_users_for(self.userid),
 		}
-		self.send(json.dumps(msg))
+		self.send(json.dumps(msg, use_decimal=True))
 
 	def push_user_history(self):
 		self.redis.lrange("user_history_{0}".format(self.userid), 0, 15, self.on_user_history)
 	
 	def on_user_history(self, val):
+		history = []
+
+		for hitem in val:
+			hspec = json.loads(hitem, use_decimal=True)
+			if hspec.get('ts', 0) > self.last_history_ts:
+				history.append(hspec)
+
+		if len(history):
+			self.last_history_ts = history[0].get('ts')
+
 		msg = {
 			'type': 'history',
-			'content': val,
+			'content': history,
 		}
-		self.send(json.dumps(msg))
+		self.send(json.dumps(msg, use_decimal=True))
 

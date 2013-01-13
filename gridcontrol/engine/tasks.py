@@ -47,3 +47,12 @@ def tick_all_users():
 	)
 	gce.do_tick()
 	gce.emit_tick()
+
+@task(name='gridcontrol.engine.reparse_all_users')
+def reparse_all_users():
+	gce = GridControlEngine(
+		get_client(),
+		line_limit = settings.GRIDCONTROL_LINE_LIMIT,
+		const_limit = settings.GRIDCONTROL_CONST_LIMIT,
+	)
+	gce.reparse_all_users()

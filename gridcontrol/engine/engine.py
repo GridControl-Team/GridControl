@@ -1,22 +1,24 @@
 import random
 import operator
 import simplejson as json
+import time
 
 from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
-from gridcontrol.engine.ffi import GridControlFFI
+from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS
 
 MAP_WIDTH = 11
 MAP_HEIGHT = 11
 
 def direction_from_pos(direction, pos):
 	delta = {
-		0: [0, -1],
-		1: [1, 0],
-		2: [0, 1],
-		3: [-1, 0],
+		0: [0, 0],
+		1: [0, -1],
+		2: [1, 0],
+		3: [0, 1],
+		4: [-1, 0],
 	}.get(direction)
 	new_pos = [(pos[0] + delta[0]) % MAP_WIDTH, (pos[1] + delta[1]) % MAP_HEIGHT]
 	return new_pos
@@ -66,7 +68,7 @@ class GameState(object):
 	def obj_at(self, x, y):
 		m = self.map_data[y][x]
 		if m == 0 and (x, y) in self.pos_user:
-			return 10
+			return CONSTANTS.get('CELL_ROBOT')
 		return m
 
 	def user_at(self, x, y):
@@ -82,15 +84,16 @@ class GameState(object):
 		return None
 	
 	def randomly_spawn_resource(self):
-		if random.randint(0, 5) < 2:
-			self.spawn_resource()
+		for i in xrange(4):
+			if random.randint(0, 5) < 2:
+				self.spawn_resource()
 
 	def spawn_resource(self):
 		pos = self.get_open_position()
 		if pos is not None:
 			self.map_data[pos[1]][pos[0]] = 1
 	
-	def move_user(self, userid, direction):
+	def do_user_move(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 0:
@@ -103,23 +106,23 @@ class GameState(object):
 	def add_resource(self, userid):
 		self.incr_user_attr(userid, "resources", 1)
 	
-	def user_history(self, userid, cmd, val):
-		self.engine.add_history(userid, cmd, val)
+	def user_history(self, userid, cmd, val, success):
+		self.engine.add_history(userid, cmd, val, success)
 	
-	def user_look(self, userid, direction):
+	def do_user_look(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
 		return self.obj_at(*new_pos)
 
-	def user_locate(self, userid, direction):
+	def do_user_locate(self, userid):
 		return self.user_pos.get(userid, [-1, -1])
 
-	def user_scan(self, userid, vector):
+	def do_user_scan(self, userid, x, y):
 		old_pos = list(self.user_pos.get(userid))
-		new_pos = vector_from_pos(vector, old_pos)
+		new_pos = vector_from_pos([x, y], old_pos)
 		return self.obj_at(*new_pos)
 
-	def user_pull(self, userid, direction):
+	def do_user_pull(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 1:
@@ -128,15 +131,15 @@ class GameState(object):
 			return 1
 		return 0
 
-	def user_push(self, userid, direction):
+	def do_user_push(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
 		new_pos = direction_from_pos(direction, old_pos)
 		target = self.user_at(*new_pos)
 		if target is not None:
 			new_posb = direction_from_pos(direction, new_pos)
 			if self.obj_at(*new_posb) == 0:
-				self.move_user(target, direction)
-				self.move_user(userid, direction)
+				self.do_user_move(target, direction)
+				self.do_user_move(userid, direction)
 				return 1
 		return 0
 
@@ -195,7 +198,7 @@ class GridControlEngine(object):
 		try:
 			compiled = GridLangParser.parse(
 				code,
-				constants = GridControlFFI.CONSTANTS,
+				constants = CONSTANTS,
 				line_limit = self.line_limit,
 				const_limit = self.const_limit,
 			)
@@ -205,9 +208,16 @@ class GridControlEngine(object):
 		except GridLangParseException as e:
 			return False, str(e)
 
-	def add_history(self, user_id, cmd, val):
+	def add_history(self, user_id, cmd, val, success):
+		ts = int(time.time())
 		key = "user_history_{0}".format(user_id)
-		hval = "{0}:{1}".format(cmd, val)
+		spec = {
+			'cmd': cmd,
+			'val': val,
+			'ts': ts,
+			'success': success,
+		}
+		hval = json.dumps(spec, use_decimal=True)
 		l = self.redis.lpush(key, hval)
 		self.redis.ltrim(key, 0, 10)
 	
@@ -256,6 +266,35 @@ class GridControlEngine(object):
 	def clear_user_vm(self, user_id):
 		key = "user_vm_{0}".format(user_id)
 		self.redis.delete(key)
+
+	def reparse_all_users(self):
+		active_users = self.redis.smembers("active_users")
+		if active_users is None:
+			return
+		for user_id in active_users:
+			key = "user_code_{0}".format(user_id)
+			val = self.redis.get(key)
+			if val is not None:
+				c = json.loads(val, use_decimal=True)
+			else:
+				continue
+
+			code = c.get('raw', None)
+			if code is None:
+				continue
+
+			try:
+				compiled = GridLangParser.parse(
+					code,
+					constants = CONSTANTS,
+					line_limit = self.line_limit,
+					const_limit = self.const_limit,
+				)
+				frozen = compiled.freeze()
+				self.freeze_user_code(user_id, frozen)
+			except GridLangParseException as e:
+				pass
+	
 
 	def tick_user(self, user_id, gamestate):
 		OP_LIMIT = 400
