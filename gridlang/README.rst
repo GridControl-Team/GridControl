@@ -196,6 +196,7 @@ POPN     --     1+x    0       Take value x from stack, and then discard top x
                                values from stack
 SWAP     --     2      2       Take top two values from stack and swap them
 DUP      --     1      2       Take top value of stack and duplicate it
+DUPN     --     2      ?       Take v, n from stack. Pushes n numbers of v
 HERE     --     0      1       Returns current location of stack
 PEEK     --     1      1       Push value at given location in stack
 POKE     --     2      0       Take x, addr from stack, and set location addr
@@ -270,3 +271,12 @@ PANIC    --     0      0       Raise an exception and provide a trace
 END      --     0      0       Stop execution
 =======  =====  =====  ======  ================================================
 
+Foreign Function Interface
+--------------------------
+
+=======  =====  =====  ======  ================================================
+Command  Args   Pops   Pushes  Description
+=======  =====  =====  ======  ================================================
+CALLFF   --     1+?    0       Take top value from stack as n. Then takes n
+                               values from stack and sends that to FFI
+=======  =====  =====  ======  ================================================
