@@ -7,6 +7,7 @@
 		console.log("Comm init!");
 		this.screen = screen;
 		this.userid = screen.userid;
+		this.reconnect_timer = null;
 		this.channel = null;
 		this.connect();
 	};
@@ -15,14 +16,35 @@
 
 	proto.connect = function() {
 		if (!_.isNull(this.channel)) {
-			this.disconnect();
+			return;
 		}
-		this.channel = new io.connect('//' + window.location.hostname + ':8001/tornado/stream?userid=' + this.userid);
+		this.reconnect_timer = null;
+		this.channel = new io.connect('//' + window.location.hostname + ':8001/tornado/stream?userid=' + this.userid, {
+			'reconnect': false,
+			'force new connection': true
+		});
 		this.channel.on("message", _.bind(this.receive, this));
-
+		this.channel.on("connecting", _.bind(this.on_connecting, this));
+		this.channel.on("connect", _.bind(this.on_connect, this));
+		this.channel.on("disconnect", _.bind(this.on_disconnect, this));
+		this.channel.on("error", _.bind(this.on_disconnect, this));
+		this.channel.on("connect_failed", _.bind(this.on_disconnect, this));
+		this.channel.on("reconnect_failed", _.bind(this.on_disconnect, this));
 	};
 
-	proto.disconnect = function() {
+	proto.on_disconnect = function() {
+		console.log("Comm died!");
+		this.channel = null;
+		this.reconnect_timer = window.setTimeout(_.bind(this.connect, this), 3000);
+		this.screen.on_disconnect();
+	};
+
+	proto.on_connect = function() {
+		this.screen.on_connect();
+	};
+
+	proto.on_connecting = function() {
+		this.screen.on_connecting();
 	};
 
 	proto.receive = function(v) {

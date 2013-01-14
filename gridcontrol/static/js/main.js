@@ -153,6 +153,21 @@
 		}, this);
 	};
 
+	screen.on_connect = function() {
+		var $c = $("#grid_connection");
+		$c.html("<div class=\"progress progress-striped progress-success active\"><div class=\"bar\" style=\"width:100%;\"><i class=\"icon-ok\"></i> Connected</div></div>");
+	};
+
+	screen.on_disconnect = function() {
+		var $c = $("#grid_connection");
+		$c.html("<div class=\"progress progress-danger active\"><div class=\"bar\" style=\"width:100%;\"><i class=\"icon-warning-sign\"></i> Disconnected</div></div>");
+	};
+
+	screen.on_connecting = function() {
+		var $c = $("#grid_connection");
+		$c.html("<div class=\"progress progress-striped active\"><div class=\"bar\" style=\"width:100%;\"><i class=\"icon-retweet\"></i> Connecting</div></div>");
+	};
+
 
 	GC.init = function() {
 		var screen = $("#grid_screen")[0];
