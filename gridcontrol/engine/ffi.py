@@ -11,7 +11,7 @@ ATTRS = ['CHARGE', 'RESOURCES', 'SHIELD', 'CALLSIGN', 'POINTS', 'STATUS']
 STATUS = ['OK', 'DEAD', 'STUNNED']
 
 CONSTANTS = {}
-for C in [LOCATIONS, ACTIONS, IDENTIFICATION]:
+for C in [LOCATIONS, ACTIONS, IDENTIFICATION, ATTRS, STATUS]:
 	for i, s in enumerate(C):
 		CONSTANTS[s] = i
 	
@@ -49,7 +49,7 @@ class GridControlFFI(object):
 			if len(val) < 2:
 				raise GridLangException("Inspect needs two arguments")
 			dir_s = pluck(val[0], LOCATIONS)
-			attr = pluck(val[1], ATTRIBUTES)
+			attr = pluck(val[1], ATTRS)
 			newargs = val[:2]
 		elif cmd_s == 'LOCATE':
 			newargs = []

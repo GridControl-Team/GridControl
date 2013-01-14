@@ -8,7 +8,7 @@ from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
-from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS
+from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS, pluck, ATTRS, STATUS
 
 from django.conf import settings
 
@@ -157,12 +157,35 @@ class GameState(object):
 			return 1
 		return 0
 
+	def do_user_charge(self, user_id, val):
+		charge = self.get_user_attr(user_id, "charge")
+		try:
+			val = int(val)
+			self.set_user_attr(user_id, "charge", charge + val)
+			ret = 1
+		except ValueError, TypeError:
+			val = 0
+			ret = 0
+		return ret
+
+	def do_user_inspect(self, user_id, direction, attr):
+		old_pos = list(self.user_pos.get(user_id))
+		new_pos = direction_from_pos(direction, old_pos)
+		target = self.user_at(*new_pos)
+		attr_s = pluck(attr, ATTRS)
+		ret = self.get_user_attr(target, attr_s)
+		print "{0} inspected {1}: {2}".format(user_id, target, ret)
+		return ret
+
+	def do_user_pewpew(self, user_id, direction):
+		return 1
+
 	def do_user_selfdestruct(self, user_id):
 		self.kill_user(user_id)
 		return 1
 
 	def get_user_attr(self, userid, attr):
-		key = "{0}:{1}".format(userid, attr)
+		key = "{0}:{1}".format(userid, attr.lower())
 		return self.user_attr.get(key, 0)
 
 	def set_user_attr(self, userid, attr, val):
