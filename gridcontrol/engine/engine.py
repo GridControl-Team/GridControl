@@ -31,7 +31,7 @@ def vector_from_pos(vector, pos):
 	return new_pos
 
 def get_random_position(x, y):
-	return [random.randint(0, x), random.randint(0, y)]
+	return (random.randint(0, x), random.randint(0, y))
 
 
 class GameState(object):

@@ -184,6 +184,8 @@ class GridLangVM(object):
 				raise GridLangExecutionException("EXEC STACK EXHAUSTED")
 			# assume we're just JUMP-ing now
 			self.pos = ecmd[1]
+			if self.pos is None:
+				return False
 
 		if self.pos >= len(self.code.lines):
 			# ran off the bottom of the code
