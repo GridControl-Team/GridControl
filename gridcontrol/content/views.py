@@ -13,7 +13,8 @@ from gridcontrol.engine.tasks import get_client, register_code
 from gridcontrol.engine.engine import GridControlEngine
 
 def home(request):
-	ctx = {}
+	user = request.user
+	ctx = {'user':user}
 	return render_to_response("frontpage.html", ctx, RequestContext(request))
 
 @login_required

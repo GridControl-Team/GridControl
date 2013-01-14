@@ -3,7 +3,12 @@
 {% block content %}
 		<h3>Free-to-play In-browser Social Massive-Multiplayer-Online Game</h3>
 		<div class="hero-unit">
-			<p>You've been given a bot to pilot. Control it with code, gather resources, and conquer the grid!</p>
-			<p class="login"><a class="btn btn-info" href="{% url socialauth_begin "github" %}"><i class="icon-github-alt"></i> Log in using GitHub</a></p>
+			{% if user.is_authenticated %}
+				<p>Welcome back {{ user.username }}! Your bot awaits!</p>
+				<p class="login"><a class="btn btn-info" href="{% url account %}">Return to your bot</a></p>
+			{% else %}
+				<p>You've been given a bot to pilot. Control it with code, gather resources, and conquer the grid!</p>
+				<p class="login"><a class="btn btn-info" href="{% url socialauth_begin "github" %}"><i class="icon-github-alt"></i> Log in using GitHub</a></p>
+			{% endif %}
 		</div>
 {% endblock %}
