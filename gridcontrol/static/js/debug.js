@@ -68,17 +68,33 @@
         return el;
     };
 
+    var make_mapping = function(reverse) {
+        var i;
+        mapping = []
+
+        for (i = 0; i < source.length; i++) {
+            mapping[reverse[i]] = i;
+        }
+
+        for (i = 0; i < parsed.length; i++) {
+            if (mapping[i] == undefined) {
+                mapping[i] = mapping[i-1];
+            }
+        }
+    };
+
     root.load_debug = function (data) {
         var i;
 
-        mapping = data.code.reverse_mapping;
-
         source = data.code.raw.split('\n');
+        parsed = data.code.lines;
+
+        make_mapping(data.code.mapping);
+
         for (i in source) {
             $('#raw_code').append(make_line(i, i, source[i], source));
         }
 
-        parsed = data.code.lines;
         for (i in parsed) {
             var code = parsed[i].join(" ");
             $('#parsed_code').append(make_line(i, mapping[i], code, parsed));
