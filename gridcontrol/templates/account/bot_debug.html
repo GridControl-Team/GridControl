@@ -1,17 +1,21 @@
 {% extends "account/base.html" %}
 {% block sub_content %}
-	<div class="panel" id="grid_alert">
-	<h1>Your bot</h1>
-	<h2>Raw code</h2>
-	<pre>{{ code.raw }}</pre>
-	<h2>Parsed code</h2>
-	<pre>{% for cmd, line in code.lines %}{{cmd}} {{ line }}
-{% endfor %}</pre>
-	<h2>VM Stack</h2>
-	<pre>{{ stack.data }}</pre>
-	<h2>VM Exec Stack</h2>
-	<pre>{{ stack.exe }}</pre>
-	<h2>VM Registry</h2>
-	<pre>{{ stack.reg }}</pre>
+	<div class="debug_panel">
+		<h2>Raw code</h2>
+		<pre id="raw_code"></pre>
 	</div>
+	<div class="debug_panel">
+		<h2>Parsed code</h2>
+		<pre id="parsed_code"></pre>
+	</div>
+	<div class="debug_panel">
+		<h2>VM Exec Stack</h2>
+		<pre id="stack"></pre>
+		<h2>VM Stack</h2>
+		<pre>{{ stack.data }}</pre>
+		<h2>VM Registry</h2>
+		<pre>{{ stack.reg }}</pre>
+	</div>
+	<script src="/static/js/debug.js" type="text/javascript"></script>
+	<script>{% autoescape off %}load_debug({{ json }});{% endautoescape %}</script>
 {% endblock %}

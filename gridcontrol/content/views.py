@@ -12,6 +12,7 @@ from pprint import pprint ##DEBUG
 from gridcontrol.engine.tasks import get_client, register_code
 from gridcontrol.engine.engine import GridControlEngine
 from django.conf import settings
+import simplejson as json
 
 def home(request):
 	user = request.user
@@ -58,6 +59,7 @@ def bot_debug(request):
 		'code': gce.get_user_code(user.id),
 		'stack': gce.get_user_vm(user.id),
 	}
+	ctx['json'] = json.dumps(ctx)
 	return render_to_response("account/bot_debug.html", ctx, RequestContext(request))
 
 def _valid_ext(filename):

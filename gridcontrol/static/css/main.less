@@ -258,3 +258,39 @@ hr{
 	clear: both;
 	margin-top: @GUTTER;
 }
+
+.parsed_code {
+	float: right;
+}
+
+.debug_panel {
+	width: 275px;
+	float: left;
+	margin-right: @GUTTER;
+	margin-bottom: @GUTTER;
+}
+
+.source_line {
+	width: 100%;
+}
+
+.source_highlighted {
+	background-color: #ffffff;
+}
+
+.source_clicked {
+	background-color: #bbbbbb;
+
+	.line_num {
+		color: #777;
+	}
+}
+
+.line_num {
+	color: #aaa;
+	margin-right: 10px;
+}
+
+.current_line {
+	color: #0088cc;
+}
