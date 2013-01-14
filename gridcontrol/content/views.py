@@ -11,6 +11,9 @@ from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
 from gridcontrol.engine.tasks import get_client, register_code
 from gridcontrol.engine.engine import GridControlEngine
+from django.conf import settings
+
+DEFAULT_MAX_GIST_SIZE = 50
 
 def home(request):
 	user = request.user
@@ -77,11 +80,22 @@ def use_gist(request, gist_id=0):
 	msg = ""
 	ctx = {}
 	gist_retriever = GistRetriever(request.user.username)
+	computed_max_size = 0
+	if settings.GRIDCONTROL_GIST_MAX_SIZE:
+		computed_max_size = settings.GRIDCONTROL_GIST_MAX_SIZE * 1024
+	else:
+		computed_max_size = DEFAULT_MAX_GIST_SIZE * 1024
 	for gist_filename, gist_file_data in gist['files'].items():
 		if gist_filename.upper().endswith(".GRIDLANG"):
-			success, msg = register_code(request.user, gist_file_data['raw_url'])
-			ctx['filename'] = gist_filename
-			break
+			if gist_file_data['size'] < computed_max_size:
+				success, msg = register_code(request.user, gist_file_data['raw_url'])
+				ctx['filename'] = gist_filename
+				break
+			else:
+				ctx['filename'] = gist_filename
+				success = False
+				msg = "Gist file too large. y u maek so much coed?"
+				break
 
 	ctx['success'] = success
 	ctx['message'] = msg
