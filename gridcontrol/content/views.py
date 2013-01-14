@@ -63,13 +63,14 @@ def account_gists(request):
 	user = request.user
 	gist_retriever = GistRetriever(user.username)
 	gists = gist_retriever.get_gist_list()
+	gists = [g for g in gists if [f for f in g['files'] if f.upper().endswith('.GRIDLANG')]]
 	ctx = {"gists": gists}
 	request.session["gists"] = gists
 	return render_to_response("account/gists.html", ctx, RequestContext(request))
 
 @login_required
 def use_gist(request, gist_id=0):
-	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
+	gist = (g for g in request.session['gists'] if g['id'] == unicode(gist_id)).next()
 	code = None
 	success = False
 	msg = ""
