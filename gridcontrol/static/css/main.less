@@ -13,7 +13,7 @@ html, body {
 	-webkit-font-smoothing: subpixel-antialiased;
 }
 
-h1, h2{
+h1, h2 {
 	text-transform: uppercase;
 	font-family: @HEADER_TYPE;
 	font-weight: 900;
@@ -264,9 +264,19 @@ hr{
 	float: left;
 	margin-right: @GUTTER;
 	margin-bottom: @GUTTER;
-	.parsed_code {
+
+	#parsed_code {
 		float: right;
 	}
+
+	#parsed_code .source_line:hover {
+		pointer: cursor;
+	}
+
+	#raw_code .source_line:hover {
+		pointer: cursor;
+	}
+
 	.source_line {
 		width: 100%;
 	}
