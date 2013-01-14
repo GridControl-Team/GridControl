@@ -2,7 +2,7 @@ from gridlang.errors import GridLangException
 
 LOCATIONS = ['HERE', 'NORTH', 'EAST', 'SOUTH', 'WEST']
 
-ACTIONS = ['LOOK', 'PULL', 'MOVE', 'SCAN', 'PUSH', 'LOCATE', 'IDENTIFY', 'INSPECT', 'PUNCH', 'CHARGE', 'PEWPEW', 'SELFDESTRUCT']
+ACTIONS = ['LOOK', 'PULL', 'MOVE', 'SCAN', 'PUSH', 'LOCATE', 'IDENTIFY', 'INSPECT', 'PUNCH', 'CHARGEUP', 'PEWPEW', 'SELFDESTRUCT']
 
 IDENTIFICATION = ['CELL_EMPTY', 'CELL_RESOURCE', 'CELL_ROCK', 'CELL_ROBOT']
 
@@ -69,7 +69,7 @@ class GridControlFFI(object):
 		if args_s is not None:
 			self.gamestate.user_history(self.user_id, cmd_s, args_s, ret)
 
-		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGE', 'SELFDESTRUCT', 'PUNCH'):
+		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGEUP', 'SELFDESTRUCT', 'PUNCH'):
 			vm.steps = 0
 
 		return ret

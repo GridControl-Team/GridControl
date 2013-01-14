@@ -112,8 +112,8 @@ class GameState(object):
 			return 1
 		return 0
 	
-	def do_user_look(self, userid, direction):
-		old_pos = list(self.user_pos.get(userid))
+	def do_user_look(self, user_id, direction):
+		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		return self.obj_at(*new_pos)
 
@@ -157,7 +157,7 @@ class GameState(object):
 			return 1
 		return 0
 
-	def do_user_charge(self, user_id, val):
+	def do_user_chargeup(self, user_id, val):
 		charge = self.get_user_attr(user_id, "charge")
 		try:
 			val = int(val)
@@ -257,7 +257,7 @@ class GridControlEngine(object):
 
 		if raw_url.upper().endswith('.GRIDC'):
 			resp = requests.post(settings.GRIDC_COMPILER_URI, data=code)
-			if resp.status_code == requests.status.ok:
+			if resp.status_code == requests.codes.ok:
 				return resp.text, 'gridc resp: %d' % resp.status_code
 
 		return None, None
