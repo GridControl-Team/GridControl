@@ -13,8 +13,6 @@ from gridcontrol.engine.tasks import get_client, register_code
 from gridcontrol.engine.engine import GridControlEngine
 from django.conf import settings
 
-DEFAULT_MAX_GIST_SIZE = 50
-
 def home(request):
 	user = request.user
 	ctx = {'user':user}
@@ -62,12 +60,16 @@ def bot_debug(request):
 	}
 	return render_to_response("account/bot_debug.html", ctx, RequestContext(request))
 
+def _valid_ext(filename):
+	fname = filename.upper()
+	return fname.endswith('.GRIDLANG') or fname.endswith('.GRIDC')
+
 @login_required
 def account_gists(request):
 	user = request.user
 	gist_retriever = GistRetriever(user.username)
 	gists = gist_retriever.get_gist_list()
-	gists = [g for g in gists if [f for f in g['files'] if f.upper().endswith('.GRIDLANG')]]
+	gists = [g for g in gists if [f for f in g['files'] if _valid_ext(f)]]
 	ctx = {"gists": gists}
 	request.session["gists"] = gists
 	return render_to_response("account/gists.html", ctx, RequestContext(request))
@@ -80,22 +82,17 @@ def use_gist(request, gist_id=0):
 	msg = ""
 	ctx = {}
 	gist_retriever = GistRetriever(request.user.username)
-	computed_max_size = 0
-	if settings.GRIDCONTROL_GIST_MAX_SIZE:
-		computed_max_size = settings.GRIDCONTROL_GIST_MAX_SIZE * 1024
-	else:
-		computed_max_size = DEFAULT_MAX_GIST_SIZE * 1024
-	for gist_filename, gist_file_data in gist['files'].items():
-		if gist_filename.upper().endswith(".GRIDLANG"):
-			if gist_file_data['size'] < computed_max_size:
-				success, msg = register_code(request.user, gist_file_data['raw_url'])
-				ctx['filename'] = gist_filename
-				break
+
+	computed_max_size = settings.GRIDCONTROL_GIST_MAX_SIZE
+
+	for gist_fname, gist_fdata in gist['files'].items():
+		if _valid_ext(gist_fname):
+			ctx['filename'] = gist_fname
+			if gist_fdata['size'] < computed_max_size:
+				success, msg = register_code(request.user, gist_fdata['raw_url'])
 			else:
-				ctx['filename'] = gist_filename
-				success = False
-				msg = "Gist file too large. y u maek so much coed?"
-				break
+				success, msg = False, 'file %s too large.  less coad pls'
+			break
 
 	ctx['success'] = success
 	ctx['message'] = msg
@@ -114,7 +111,7 @@ def gist_viewer(request, gist_id=0):
 	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
 	gist_retriever = GistRetriever(request.user.username)
 	gist_texts = {}
-	for gist_filename, gist_file_data in gist['files'].items():
-		gist_texts[gist_filename] = gist_retriever.get_file_text(gist_file_data['raw_url'])
+	for gist_fname, gist_fdata in gist['files'].items():
+		gist_texts[gist_fname] = gist_retriever.get_file_text(gist_fdata['raw_url'])
 	ctx = {"gist_texts": gist_texts}
 	return render_to_response("account/gist_viewer.html", ctx, RequestContext(request))

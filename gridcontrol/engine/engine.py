@@ -2,12 +2,15 @@ import random
 import operator
 import simplejson as json
 import time
+import requests
 
 from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
 from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS
+
+from django.conf import settings
 
 MAP_WIDTH = 11
 MAP_HEIGHT = 11
@@ -221,10 +224,28 @@ class GridControlEngine(object):
 
 		User bot will no longer active on tick_users."""
 		self.redis.srem("active_users", user_id)
-	
-	def register_code(self, user_id, gist_url):
-		gist_retriever = GistRetriever("lol")
-		code = gist_retriever.get_file_text(gist_url)
+
+	def fetch_code(self, user_id, raw_url):
+		retriever = GistRetriever('dforsyth is the best')
+		code = retriever.get_file_text(raw_url)
+
+		if raw_url.upper().endwith('.GRIDLANG'):
+			return code, None
+
+		if raw_url.upper().endwith('.GRIDC'):
+			resp = requests.post(settings.GRIDC_COMPILER_URI, data=code)
+			if resp.status_code == requests.status.ok:
+				return resp.text, 'gridc resp: %d' % resp.status_code
+
+		return None, None
+
+	def register_code(self, user_id, raw_url):
+		code, err = fetch_code(user_id, raw_url)
+		if not code:
+			if err:
+				return False, err
+			return False, 'Failed to fetch code from %s' % raw_url
+
 		try:
 			compiled = GridLangParser.parse(
 				code,

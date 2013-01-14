@@ -130,9 +130,9 @@ AUTHENTICATION_BACKENDS = (
 	'django.contrib.auth.backends.ModelBackend',
 )
 
-LOGIN_URL          = '/login-form/'
+LOGIN_URL		  = '/login-form/'
 LOGIN_REDIRECT_URL = '/logged-in/'
-LOGIN_ERROR_URL    = '/login-error/'
+LOGIN_ERROR_URL	= '/login-error/'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -199,3 +199,5 @@ GRIDCONTROL_EXE_LIMIT = 500
 GRIDCONTROL_REG_LIMIT = 500
 
 GRIDCONTROL_GIST_MAX_SIZE = 500
+
+GRIDC_COMPILER_URI = 'http://lessandro.com/gridc-ws/'
