@@ -86,6 +86,8 @@ class GridLangParser(object):
 						# at first sight of TOKEN_COMMENT, discard
 						# all subsequent tokens
 						break
+					if isinstance(matched, TOKEN_JUNK):
+						raise GridLangParseException("Untokenizable entity: {0}".format(matched.val))
 					elif isinstance(matched, TOKEN_PUSHSUGAR):
 						if push_sugar:
 							raise GridLangParseException("Cannot have two TOKEN_PUSHSUGAR on one line")

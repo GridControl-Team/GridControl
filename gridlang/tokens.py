@@ -74,9 +74,9 @@ class TOKEN_LABEL(TOKEN):
 class TOKEN_JUNK(TOKEN):
 	r = r'.*'
 
-	def __init__(self):
-		pass
+	def __init__(self, i):
+		self.val = i
 
 	@classmethod
 	def emit(cls, i):
-		return cls()
+		return cls(i)
