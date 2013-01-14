@@ -7,7 +7,6 @@ class GridLangCode(object):
 		self.raw = ""
 		self.lines = []
 		self.mapping = {}
-		self.reverse_mapping = []
 	
 	def get_line(self, ln):
 		try:
@@ -23,7 +22,6 @@ class GridLangCode(object):
 			'raw': str(self.raw),
 			'lines': list(self.lines),
 			'mapping': dict(self.mapping),
-			'reverse_mapping': list(self.reverse_mapping)
 		}
 		return ret
 
@@ -32,7 +30,6 @@ class GridLangCode(object):
 		self.lines = list(data['lines'])
 		#json trounces the integer keys, so we have to fix them here
 		self.mapping = dict((int(k), int(v)) for k,v in data['mapping'].iteritems())
-		self.reverse_mapping = list(data['reverse_mapping'])
 	
 	def print_code(self):
 		print self.raw
@@ -102,7 +99,6 @@ class GridLangParser(object):
 
 			for matched in parts_push:
 				glc.lines.append([PUSH_OPCODE.s, matched])
-				glc.reverse_mapping.append(src_ln)
 
 			if len(parts):
 				if isinstance(parts[0], TOKEN_CONSTANT):
@@ -124,8 +120,6 @@ class GridLangParser(object):
 				else:
 					glc.lines.append(parts)
 					glc.mapping[src_ln] = ln
-					glc.reverse_mapping.append(src_ln)
-
 				if const_limit is not None:
 					if len(constants) > const_limit:
 						raise GridLangParseException("Too many constants")
