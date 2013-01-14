@@ -92,6 +92,12 @@ class GameState(object):
 		pos = self.get_open_position()
 		if pos is not None:
 			self.map_data[pos[1]][pos[0]] = 1
+
+	def add_resource(self, userid):
+		self.incr_user_attr(userid, "resources", 1)
+	
+	def user_history(self, userid, cmd, val, success):
+		self.engine.add_history(userid, cmd, val, success)
 	
 	def do_user_move(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
@@ -102,12 +108,6 @@ class GameState(object):
 			del self.pos_user[tuple(old_pos)]
 			return 1
 		return 0
-	
-	def add_resource(self, userid):
-		self.incr_user_attr(userid, "resources", 1)
-	
-	def user_history(self, userid, cmd, val, success):
-		self.engine.add_history(userid, cmd, val, success)
 	
 	def do_user_look(self, userid, direction):
 		old_pos = list(self.user_pos.get(userid))
@@ -142,6 +142,21 @@ class GameState(object):
 				self.do_user_move(userid, direction)
 				return 1
 		return 0
+
+	def do_user_punch(self, user_id, direction):
+		old_pos = list(self.user_pos.get(user_id))
+		new_pos = direction_from_pos(direction, old_pos)
+		target = self.user_at(*new_pos)
+		if target is not None:
+			self.user_history(target, "YOUR BOT", "WAS ATTACKED", 0)
+			self.kill_user(target)
+			self.map_data[new_pos[1]][new_pos[0]] = 1
+			return 1
+		return 0
+
+	def do_user_selfdestruct(self, user_id):
+		self.kill_user(user_id)
+		return 1
 
 	def get_user_attr(self, userid, attr):
 		key = "{0}:{1}".format(userid, attr)

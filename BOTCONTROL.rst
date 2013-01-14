@@ -29,6 +29,11 @@ refer to the different bot commands. The constants are:
     @PUSH
     @LOCATE
     @IDENTIFY
+    @INSPECT // no implemented
+    @PUNCH
+    @CHARGE // no implemented
+    @PEWPEW // no implemented
+    @SELFDESTRUCT
     
     # Direction constants
     @NORTH
@@ -40,6 +45,19 @@ refer to the different bot commands. The constants are:
     @CELL_EMPTY
     @CELL_RESOURCE
     @CELL_ROBOT
+
+    # Attribute constants
+    @CHARGE
+    @RESOURCES
+    @SHIELD
+    @CALLSIGN
+    @POINTS
+    @STATUS
+
+    # Status constants
+    @OK
+    @DEAD
+    @STUNNED
 
 BOT ACTION CONSTANTS
 ====================
@@ -71,6 +89,11 @@ on you.
 
 ``@IDENTIFY`` 1 argument (direction). Push onto your stack the user_id of bot
 that exists in the direction provided. Pushes ``0`` if no bot is there.
+
+``@PUNCH`` 1 argument (direction). Punch a bot in the direction provided. If
+the bot is killed, it leaves a resource.
+
+``@SELFDESTRUCT`` No arguments. Kill your bot.
 
 DIRECTION CONSTANTS
 ===================

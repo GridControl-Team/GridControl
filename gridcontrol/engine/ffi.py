@@ -6,7 +6,7 @@ ACTIONS = ['LOOK', 'PULL', 'MOVE', 'SCAN', 'PUSH', 'LOCATE', 'IDENTIFY', 'INSPEC
 
 IDENTIFICATION = ['CELL_EMPTY', 'CELL_RESOURCE', 'CELL_ROCK', 'CELL_ROBOT']
 
-ATTRS = ['HEALTH', 'RESOURCES', 'SHIELD', 'CALLSIGN', 'POINTS', 'STATUS']
+ATTRS = ['CHARGE', 'RESOURCES', 'SHIELD', 'CALLSIGN', 'POINTS', 'STATUS']
 
 STATUS = ['OK', 'DEAD', 'STUNNED']
 
@@ -60,7 +60,7 @@ class GridControlFFI(object):
 			if len(val) < 1:
 				raise GridLangException("{0} needs 1 argument".format(cmd_s))
 			newargs = val[:1]
-			if cmd_s in ('PULL','MOVE', 'PUSH'):
+			if cmd_s in ('PULL', 'MOVE', 'PUSH', 'PUNCH'):
 				args_s = pluck(val[0], LOCATIONS)
 
 		f = getattr(self.gamestate, "do_user_{0}".format(cmd_s.lower()))
@@ -69,7 +69,7 @@ class GridControlFFI(object):
 		if args_s is not None:
 			self.gamestate.user_history(self.user_id, cmd_s, args_s, ret)
 
-		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGE', 'SELFDESTRUCT'):
+		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGE', 'SELFDESTRUCT', 'PUNCH'):
 			vm.steps = 0
 
 		return ret
