@@ -59,7 +59,7 @@ def bot_debug(request):
 		'code': gce.get_user_code(user.id),
 		'stack': gce.get_user_vm(user.id),
 	}
-	ctx['json'] = json.dumps(ctx)
+	ctx['json'] = json.dumps(ctx, use_decimal=True)
 	return render_to_response("account/bot_debug.html", ctx, RequestContext(request))
 
 def _valid_ext(filename):

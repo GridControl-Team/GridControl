@@ -17,5 +17,5 @@
 		<pre>{{ stack.reg }}</pre>
 	</div>
 	<script src="/static/js/debug.js" type="text/javascript"></script>
-	<script>{% autoescape off %}load_debug({{ json }});{% endautoescape %}</script>
+	<script>load_debug({{ json|safe }});</script>
 {% endblock %}
