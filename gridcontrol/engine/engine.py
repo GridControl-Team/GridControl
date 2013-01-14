@@ -252,10 +252,10 @@ class GridControlEngine(object):
 		retriever = GistRetriever('dforsyth is the best')
 		code = retriever.get_file_text(raw_url)
 
-		if raw_url.upper().endwith('.GRIDLANG'):
+		if raw_url.upper().endswith('.GRIDLANG'):
 			return code, None
 
-		if raw_url.upper().endwith('.GRIDC'):
+		if raw_url.upper().endswith('.GRIDC'):
 			resp = requests.post(settings.GRIDC_COMPILER_URI, data=code)
 			if resp.status_code == requests.status.ok:
 				return resp.text, 'gridc resp: %d' % resp.status_code
@@ -263,7 +263,7 @@ class GridControlEngine(object):
 		return None, None
 
 	def register_code(self, user_id, raw_url):
-		code, err = fetch_code(user_id, raw_url)
+		code, err = self.fetch_code(user_id, raw_url)
 		if not code:
 			if err:
 				return False, err
