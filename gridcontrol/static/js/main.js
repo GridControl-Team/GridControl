@@ -48,7 +48,7 @@
 	var BotHistoryItem = _.template("" +
 			"<% if(success) { %>" +
 				"<li class=\"success\">" +
-				"<i class=\"icon-okay\"></i>" + 
+				"<i class=\"icon-ok\"></i>" + 
 			"<% } else { %>" +
 				"<li class=\"fail\">" +
 				"<i class=\"icon-warning-sign\"></i>" + 
@@ -110,6 +110,8 @@
 	screen.update_history = function(history) {
 		var $history = $("#grid_history ul");
 		var num_items = $("li", $history).length;
+		$("hr", $history).remove();
+		$history.prepend("<hr>");
 		_.each(history, function(v,k ){
 			var $item = $(BotHistoryItem({
 				cmd: v.cmd,
