@@ -171,8 +171,10 @@ example:
 ::
     
     @MAIN
-    CALL @MYOWNPRINT << 1
-    CALL @MYOWNPRINT << 2
+    PUSH 1
+    CALL << @MYOWNPRINT
+    PUSH 2
+    CALL << @MYOWNPRINT
     EXIT
 
     @MYOWNPRINT
