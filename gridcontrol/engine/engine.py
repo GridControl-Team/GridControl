@@ -156,6 +156,21 @@ class GameState(object):
 		old_val = self.user_attr.get(key, 0)
 		self.user_attr[key] = old_val + val
 	
+	def is_user_dead(self, user_id):
+		v = self.get_user_attr(user_id, "status")
+		return v == CONSTANTS.get("DEAD")
+
+	def kill_user(self, user_id):
+		self.set_user_attr(user_id, "status", CONSTANTS.get("DEAD"))
+		old_pos = self.user_pos.get(user_id)
+		if old_pos is not None:
+			del self.user_pos[user_id]
+			del	self.pos_user[tuple(old_pos)]
+		self.user_history(user_id, "YOUR BOT", "HAS DIED", 0)
+	
+	def clear_status(self, user_id):
+		self.set_user_attr(user_id, "status", 0)
+	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("resource_map", json.dumps(self.map_data))
@@ -351,6 +366,9 @@ class GridControlEngine(object):
 		
 		# tick all users
 		for userid in active_users:
+			if gamestate.is_user_dead(userid):
+				gamestate.clear_status(userid)
+				continue
 			try:
 				if userid not in gamestate.user_pos:
 					# new user, place them on map somewhere
