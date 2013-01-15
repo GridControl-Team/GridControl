@@ -61,12 +61,12 @@ class GameState(object):
 		for x in xrange((MAP_WIDTH * MAP_HEIGHT) / 4):
 			self.spawn_resource()
 
-	def spawn_user(self, userid):
+	def spawn_user(self, user_id):
 		pos = self.get_open_position()
 		if pos is None:
 			raise GridLangException("Could not locate empty space for you! Sorry! It will try again next tick.")
-		self.user_pos[userid] = pos
-		self.pos_user[pos] = userid
+		self.user_pos[user_id] = pos
+		self.pos_user[pos] = user_id
 	
 	def obj_at(self, x, y):
 		m = self.map_data[y][x]
@@ -96,18 +96,19 @@ class GameState(object):
 		if pos is not None:
 			self.map_data[pos[1]][pos[0]] = 1
 
-	def add_resource(self, userid):
-		self.incr_user_attr(userid, "resources", 1)
+	def add_resource(self, user_id):
+		self.incr_user_attr(user_id, "resources", 1)
 	
-	def user_history(self, userid, cmd, val, success):
-		self.engine.add_history(userid, cmd, val, success)
+	def user_history(self, user_id, cmd, val, success):
+		self.engine.add_history(user_id, cmd, val, success)
 	
-	def do_user_move(self, userid, direction):
-		old_pos = list(self.user_pos.get(userid))
+	def do_user_move(self, user_id, direction):
+		self.incr_user_attr(user_id, "charge", -5)
+		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 0:
-			self.user_pos[userid] = new_pos
-			self.pos_user[tuple(new_pos)] = userid
+			self.user_pos[user_id] = new_pos
+			self.pos_user[tuple(new_pos)] = user_id
 			del self.pos_user[tuple(old_pos)]
 			return 1
 		return 0
@@ -117,36 +118,38 @@ class GameState(object):
 		new_pos = direction_from_pos(direction, old_pos)
 		return self.obj_at(*new_pos)
 
-	def do_user_locate(self, userid):
-		return self.user_pos.get(userid, [-1, -1])
+	def do_user_locate(self, user_id):
+		return self.user_pos.get(user_id, [-1, -1])
 
-	def do_user_scan(self, userid, x, y):
-		old_pos = list(self.user_pos.get(userid))
+	def do_user_scan(self, user_id, x, y):
+		old_pos = list(self.user_pos.get(user_id))
 		new_pos = vector_from_pos([x, y], old_pos)
 		return self.obj_at(*new_pos)
 
-	def do_user_pull(self, userid, direction):
-		old_pos = list(self.user_pos.get(userid))
+	def do_user_pull(self, user_id, direction):
+		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 1:
 			self.map_data[new_pos[1]][new_pos[0]] = 0
-			self.add_resource(userid)
+			self.add_resource(user_id)
 			return 1
 		return 0
 
-	def do_user_push(self, userid, direction):
-		old_pos = list(self.user_pos.get(userid))
+	def do_user_push(self, user_id, direction):
+		self.incr_user_attr(user_id, "charge", -10)
+		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		target = self.user_at(*new_pos)
 		if target is not None:
 			new_posb = direction_from_pos(direction, new_pos)
 			if self.obj_at(*new_posb) == 0:
 				self.do_user_move(target, direction)
-				self.do_user_move(userid, direction)
+				self.do_user_move(user_id, direction)
 				return 1
 		return 0
 
 	def do_user_punch(self, user_id, direction):
+		self.incr_user_attr(user_id, "charge", -10)
 		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		target = self.user_at(*new_pos)
@@ -159,13 +162,24 @@ class GameState(object):
 
 	def do_user_chargeup(self, user_id, val):
 		charge = self.get_user_attr(user_id, "charge")
+		resources = self.get_user_attr(user_id, "resources")
 		try:
 			val = int(val)
-			self.set_user_attr(user_id, "charge", charge + val)
-			ret = 1
 		except ValueError, TypeError:
-			val = 0
+			return 0
+
+		if val > resources:
+			self.user_history(target, "BOT CHARGE", "LACKS RESOURCES", 0)
 			ret = 0
+		else:
+			self.incr_user_attr(user_id, "resources", -val)
+			if (val > 10) or ((charge + val) > 50):
+				self.user_history(target, "BOT CHARGE", "EXCESSIVE", 0)
+				self.kill_user(user_id)
+				ret = 0
+			else:
+				self.set_user_attr(user_id, "charge", charge + val)
+				ret = 1
 		return ret
 
 	def do_user_inspect(self, user_id, direction, attr):
@@ -174,28 +188,42 @@ class GameState(object):
 		target = self.user_at(*new_pos)
 		attr_s = pluck(attr, ATTRS)
 		ret = self.get_user_attr(target, attr_s)
-		print "{0} inspected {1}: {2}".format(user_id, target, ret)
 		return ret
 
 	def do_user_pewpew(self, user_id, direction):
+		charge = self.get_user_attr(user_id, "charge")
+		steps = charge / 10
+		if steps < 1:
+			self.user_history(user_id, "PEWPEW", "LACKS ENERGY", 0)
+			self.set_user_attr(user_id, "charge", 0)
+			return 0
+		old_pos = list(self.user_pos.get(user_id))
+		for i in range(steps):
+			new_pos = direction_from_pos(direction, old_pos)
+			target = self.user_at(*new_pos)
+			if target is not None:
+				self.user_history(target, "YOUR BOT", "WAS LASERED", 0)
+				self.kill_user(target)
+			old_pos = new_pos
+		self.set_user_attr(user_id, "charge", 0)
 		return 1
 
 	def do_user_selfdestruct(self, user_id):
 		self.kill_user(user_id)
 		return 1
 
-	def get_user_attr(self, userid, attr):
-		key = "{0}:{1}".format(userid, attr.lower())
+	def get_user_attr(self, user_id, attr):
+		key = "{0}:{1}".format(user_id, attr.lower())
 		return self.user_attr.get(key, 0)
 
-	def set_user_attr(self, userid, attr, val):
-		key = "{0}:{1}".format(userid, attr)
+	def set_user_attr(self, user_id, attr, val):
+		key = "{0}:{1}".format(user_id, attr)
 		self.user_attr[key] = val
 
-	def incr_user_attr(self, userid, attr, val):
-		key = "{0}:{1}".format(userid, attr)
+	def incr_user_attr(self, user_id, attr, val):
+		key = "{0}:{1}".format(user_id, attr)
 		old_val = self.user_attr.get(key, 0)
-		self.user_attr[key] = old_val + val
+		self.user_attr[key] = max(old_val + val, 0)
 	
 	def is_user_dead(self, user_id):
 		v = self.get_user_attr(user_id, "status")
@@ -208,6 +236,7 @@ class GameState(object):
 			del self.user_pos[user_id]
 			del	self.pos_user[tuple(old_pos)]
 		self.user_history(user_id, "YOUR BOT", "HAS DIED", 0)
+		self.set_user_attr(user_id, "charge", 0)
 	
 	def clear_status(self, user_id):
 		self.set_user_attr(user_id, "status", 0)
@@ -424,27 +453,27 @@ class GridControlEngine(object):
 		gamestate.randomly_spawn_resource()
 		
 		# tick all users
-		for userid in active_users:
-			if gamestate.is_user_dead(userid):
-				gamestate.clear_status(userid)
+		for user_id in active_users:
+			if gamestate.is_user_dead(user_id):
+				gamestate.clear_status(user_id)
 				continue
 			try:
-				if userid not in gamestate.user_pos:
+				if user_id not in gamestate.user_pos:
 					# new user, place them on map somewhere
-					gamestate.spawn_user(userid)
-				self.tick_user(userid, gamestate)
+					gamestate.spawn_user(user_id)
+				self.tick_user(user_id, gamestate)
 			except GridLangException as e:
-				print "USER {0} HAD VM ISSUE".format(userid)
-				channel = "user_msg_{0}".format(userid)
+				print "USER {0} HAD VM ISSUE".format(user_id)
+				channel = "user_msg_{0}".format(user_id)
 				if hasattr(e, 'traceback'):
 					msg = "{0}\n\n{1}".format(e.traceback, e.message)
 				else:
 					msg = e.message
 				self.redis.publish(channel, msg)
 			except Exception as e:
-				print "USER {0} HAS UNCAUGHT ISSUE".format(userid)
+				print "USER {0} HAS UNCAUGHT ISSUE".format(user_id)
 				print e
-				channel = "user_msg_{0}".format(userid)
+				channel = "user_msg_{0}".format(user_id)
 				msg = "{0}\n\n{1}".format("GRIDLANG Exception", e.message)
 				self.redis.publish(channel, msg)
 

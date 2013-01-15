@@ -40,7 +40,7 @@ class GridControlFFI(object):
 			if len(val) < 2:
 				raise GridLangException("Scan needs two arguments")
 			newargs = val[:2]
-		elif cmd_s in ('SHIELD', 'CHARGE'): # one argument commands
+		elif cmd_s in ('SHIELD', 'CHARGEUP'): # one argument commands
 			if len(val) < 1:
 				raise GridLangException("{0} needs 1 argument".format(cmd_s))
 			newargs = val[:1]
@@ -60,7 +60,7 @@ class GridControlFFI(object):
 			if len(val) < 1:
 				raise GridLangException("{0} needs 1 argument".format(cmd_s))
 			newargs = val[:1]
-			if cmd_s in ('PULL', 'MOVE', 'PUSH', 'PUNCH'):
+			if cmd_s in ('PULL', 'MOVE', 'PUSH', 'PUNCH', 'PEWPEW'):
 				args_s = pluck(val[0], LOCATIONS)
 
 		f = getattr(self.gamestate, "do_user_{0}".format(cmd_s.lower()))
@@ -69,7 +69,7 @@ class GridControlFFI(object):
 		if args_s is not None:
 			self.gamestate.user_history(self.user_id, cmd_s, args_s, ret)
 
-		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGEUP', 'SELFDESTRUCT', 'PUNCH'):
+		if cmd_s in ('PULL', 'MOVE', 'PUSH', 'CHARGEUP', 'SELFDESTRUCT', 'PUNCH', 'PEWPEW'):
 			vm.steps = 0
 
 		return ret
