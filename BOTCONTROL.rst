@@ -29,10 +29,10 @@ refer to the different bot commands. The constants are:
     @PUSH
     @LOCATE
     @IDENTIFY
-    @INSPECT // no implemented
+    @INSPECT
     @PUNCH
-    @CHARGE // no implemented
-    @PEWPEW // no implemented
+    @CHARGEUP
+    @PEWPEW
     @SELFDESTRUCT
     
     # Direction constants
@@ -90,8 +90,36 @@ on you.
 ``@IDENTIFY`` 1 argument (direction). Push onto your stack the user_id of bot
 that exists in the direction provided. Pushes ``0`` if no bot is there.
 
+``@INSPECT`` 2 arguments (direction, attribute). Pushes onto your stack the
+value or constant representing the attribute of target. For example,
+``CALLFF << @INSPECT @HERE @CHARGE 3`` will return the charge of your own bot.
+
 ``@PUNCH`` 1 argument (direction). Punch a bot in the direction provided. If
 the bot is killed, it leaves a resource.
+
+``@CHARGEUP`` 1 argument (val). Deplete your resources by value provided, and
+increase the stored charge on your bot by the same amount. You can use
+this charge to later fire lasers with ``@PEWPEW``.
+
+::
+    
+    Notes:
+    DO NOT: ``@CHARGEUP`` more than ``10``, or your bot will blow up.
+    DO NOT: Have more than ``50`` charge total on your bot, or it will explode
+    ``@MOVE`` taken while you have a charge depletes your charge by ``5``
+    ``@PUSH`` or ``@PUNCH`` taken with a charge depletes it by ``10``
+    You can ``@INSPECT`` your own charge (or other players) using ``@INSPECT``
+
+``@PEWPEW`` 1 argument (direction). Fire a laser in direction. The laser will
+traverse the grid 1 cell per 10 units of charge you have stored. (Since the
+limit is 50 charge, the laser is limited to 5 cells).
+
+::
+    
+    Notes:
+    Laser goes through targets, so one laser can destroy multiple targets.
+    Unlike punching, this does not leave resources.
+
 
 ``@SELFDESTRUCT`` No arguments. Kill your bot.
 
