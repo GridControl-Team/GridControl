@@ -1,5 +1,6 @@
 from opcodes import OPCODES
 from errors import *
+from decimal import Decimal
 
 class GridLangVM(object):
 	def __init__(self):
@@ -126,7 +127,7 @@ class GridLangVM(object):
 	
 	def eval(self, i):
 		"""If i is not a scalar resolve it out of the registry"""
-		if type(i) in (int, float):
+		if type(i) in (int, Decimal):
 			return i
 		else:
 			return self.get(i)
