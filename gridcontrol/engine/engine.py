@@ -169,12 +169,12 @@ class GameState(object):
 			return 0
 
 		if val > resources:
-			self.user_history(target, "BOT CHARGE", "LACKS RESOURCES", 0)
+			self.user_history(user_id, "BOT CHARGE", "LACKS RESOURCES", 0)
 			ret = 0
 		else:
 			self.incr_user_attr(user_id, "resources", -val)
 			if (val > 10) or ((charge + val) > 50):
-				self.user_history(target, "BOT CHARGE", "EXCESSIVE", 0)
+				self.user_history(user_id, "BOT CHARGE", "EXCESSIVE", 0)
 				self.kill_user(user_id)
 				ret = 0
 			else:
