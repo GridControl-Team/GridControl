@@ -5,6 +5,9 @@ from parser import GridLangParser
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
+def inline_src(s):
+	return s.replace(";", "\n")
+
 def get_src(sn):
 	fn = os.path.join(ROOT, "src", "{0}.gridlang".format(sn))
 	with open(fn) as fh:
@@ -31,3 +34,8 @@ def exe_w_limits(c):
 
 def extract(vm):
 	return vm.pop()
+
+def get_result(src):
+	c = parse(src)
+	vm = exe(c)
+	return extract(vm)

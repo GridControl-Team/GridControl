@@ -14,11 +14,15 @@ class _METAOPCODE(type):
 			OPCODES.append(cls)
 
 class _METAOPERATOR_OPCODE(_METAOPCODE):
+	coerce_to = None
 	def __init__(cls, name, bases, dct):
 		super(_METAOPERATOR_OPCODE, cls).__init__(name, bases, dct)
 		def _run(cls, args, vm):
 			left, right = vm.pop(2)
-			vm.append(int(cls.o(left, right)))
+			ret = cls.o(left, right)
+			if cls.coerce_to is not None:
+				ret = cls.coerce_to(ret)
+			vm.append(ret)
 		cls.run = classmethod(_run)
 
 class _METAOPERATION_OPCODE(_METAOPCODE):
@@ -26,7 +30,7 @@ class _METAOPERATION_OPCODE(_METAOPCODE):
 		super(_METAOPERATION_OPCODE, cls).__init__(name, bases, dct)
 		def _run(cls, args, vm):
 			v = vm.pop()
-			vm.append(int(cls.o(v)))
+			vm.append(cls.o(v))
 		cls.run = classmethod(_run)
 
 class OPCODE(object):
@@ -46,7 +50,7 @@ class OPCODE(object):
 
 class OPERATOR_OPCODE(OPCODE):
 	__metaclass__ = _METAOPERATOR_OPCODE
-	
+
 class OPERATION_OPCODE(OPCODE):
 	__metaclass__ = _METAOPERATION_OPCODE
 
@@ -220,18 +224,22 @@ class END_OPCODE(OPCODE):
 		vm.end()
 
 class GREATER_OPCODE(OPERATOR_OPCODE):
+	coerce_to = int
 	s = 'GREATER'
 	o = operator.gt
 
 class LESS_OPCODE(OPERATOR_OPCODE):
+	coerce_to = int
 	s = 'LESS'
 	o = operator.lt
 
 class EQUAL_OPCODE(OPERATOR_OPCODE):
+	coerce_to = int
 	s = 'EQUAL'
 	o = operator.eq
 
 class NOTEQUAL_OPCODE(OPERATOR_OPCODE):
+	coerce_to = int
 	s = 'NEQUAL'
 	o = operator.ne
 
@@ -244,6 +252,7 @@ class MODULO_OPCODE(OPERATOR_OPCODE):
 	o = operator.mod
 
 class DIVIDE_OPCODE(OPERATOR_OPCODE):
+	coerce_to = int
 	s = ['DIV', 'DIVIDE']
 	o = operator.floordiv
 

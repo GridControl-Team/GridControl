@@ -75,6 +75,8 @@ class GridLangVM(object):
 		self.data, ret = self.data[:i], self.data[i:]
 		if t is not None:
 			if any(type(v) != t for v in ret):
+				print "Expected:", t
+				print "Got:", ret
 				raise GridLangExecutionException("Type error")
 		if n == 1:
 			ret = ret[0]
