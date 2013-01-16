@@ -244,6 +244,8 @@ GREATER  --     2      1       Take a, b from stack and push 1 if a > b else 0
 LESS     --     2      1       Push 1 if a < b else 0
 EQUAL    --     2      1       Push 1 if a == b else 0
 NEQUAL   --     2      1       Push 1 if a != b else 0
+AND      --     2      1       Push 1 if a && b else 0
+OR       --     2      1       Push 1 if a || b else 0
 =======  =====  =====  ======  ================================================
 
 Control Flow Operations
