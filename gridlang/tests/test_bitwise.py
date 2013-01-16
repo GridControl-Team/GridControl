@@ -40,3 +40,11 @@ class TestBitwise(unittest.TestCase):
 		src = inline_src("BXOR << 1 1")
 		self.assertEqual(get_result(src), 0)
 
+		src = inline_src("BNOT << 1")
+		self.assertEqual(get_result(src), -2)
+
+		src = inline_src("BNOT << 0")
+		self.assertEqual(get_result(src), -1)
+
+		src = inline_src("BNOT << -3")
+		self.assertEqual(get_result(src), 2)
