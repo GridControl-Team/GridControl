@@ -143,7 +143,7 @@ class TESTTGOTO_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		val, arg = vm.pop(2, t = int)
-		if val > 0:
+		if val != 0:
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
@@ -155,7 +155,7 @@ class TESTFGOTO_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		val, arg = vm.pop(2, t = int)
-		if val <= 0:
+		if val == 0:
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
