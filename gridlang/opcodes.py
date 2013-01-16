@@ -339,6 +339,11 @@ class BXOR_OPCODE(OPERATOR_OPCODE):
 	o = operator.xor
 	arg_type = int
 
+class BNOT_OPCODE(OPERATION_OPCODE):
+	s = 'BNOT'
+	o = operator.invert
+	arg_type = int
+
 class PANIC_OPCODE(OPCODE):
 	s = 'PANIC'
 	@classmethod
