@@ -15,10 +15,11 @@ class _METAOPCODE(type):
 
 class _METAOPERATOR_OPCODE(_METAOPCODE):
 	coerce_to = None
+	arg_type  = None
 	def __init__(cls, name, bases, dct):
 		super(_METAOPERATOR_OPCODE, cls).__init__(name, bases, dct)
 		def _run(cls, args, vm):
-			left, right = vm.pop(2)
+			left, right = vm.pop(2, t = cls.arg_type)
 			ret = cls.o(left, right)
 			if cls.coerce_to is not None:
 				ret = cls.coerce_to(ret)
@@ -293,6 +294,21 @@ class OR_OPCODE(OPCODE):
 	def run(cls, args, vm):
 		left, right = vm.pop(2)
 		vm.append(int(left or right))
+
+class BOR_OPCODE(OPERATOR_OPCODE):
+	s = 'BOR'
+	o = operator.or_
+	arg_type = int
+
+class BAND_OPCODE(OPERATOR_OPCODE):
+	s = 'BAND'
+	o = operator.and_
+	arg_type = int
+
+class BXOR_OPCODE(OPERATOR_OPCODE):
+	s = 'BXOR'
+	o = operator.xor
+	arg_type = int
 
 class PANIC_OPCODE(OPCODE):
 	s = 'PANIC'
