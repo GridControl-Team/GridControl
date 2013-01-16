@@ -1,6 +1,7 @@
 from tokens import TOKENS, TOKEN_CONSTANT, TOKEN_PUSHSUGAR, TOKEN_JUNK, TOKEN_COMMENT
 from opcodes import PUSH_OPCODE
 from errors import *
+from decimal import Decimal
 
 class GridLangCode(object):
 	def __init__(self):
@@ -109,7 +110,7 @@ class GridLangParser(object):
 							constants[c] = src_ln + 1
 						else:
 							raise GridLangParseException("Label {0} already defined".format(c), src_ln)
-					elif len(parts) == 2 and type(parts[1]) in (int, float):
+					elif len(parts) == 2 and type(parts[1]) in (int, Decimal):
 						c = parts[0].val
 						if c not in constants:
 							constants[c] = parts[1]
