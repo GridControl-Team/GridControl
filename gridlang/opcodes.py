@@ -136,7 +136,7 @@ class GOTO_OPCODE(OPCODE):
 	def run(cls, args, vm):
 		val = vm.pop()
 		jump = vm.map_goto_num(val)
-		vm.append_exe(['JUMP', jump])
+		vm.pos = jump
 
 class TESTTGOTO_OPCODE(OPCODE):
 	jump = True
@@ -148,7 +148,7 @@ class TESTTGOTO_OPCODE(OPCODE):
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
-		vm.append_exe(['JUMP', jump])
+		vm.pos = jump
 
 class TESTFGOTO_OPCODE(OPCODE):
 	jump = True
@@ -160,7 +160,7 @@ class TESTFGOTO_OPCODE(OPCODE):
 			jump = vm.map_goto_num(arg)
 		else:
 			jump = vm.pos + 1
-		vm.append_exe(['JUMP', jump])
+		vm.pos = jump
 
 class CALL_OPCODE(OPCODE):
 	jump = True
@@ -170,38 +170,38 @@ class CALL_OPCODE(OPCODE):
 		v = vm.pop()
 		jump = vm.map_goto_num(v)
 		ret = vm.pos + 1
-		vm.append_exe(['JUMP', ret])
-		vm.append_exe(['JUMP', jump])
+		vm.append_exe(['RETURN', ret])
+		vm.pos = jump
 
 class TESTFCALL_OPCODE(OPCODE):
 	jump = True
 	s = ['TESTFCALL', 'IFFCALL']
 	@classmethod
 	def run(cls, args, vm):
-		val, arg = vm.pop(2)
+		arg = vm.pop(t = int)
+		val = vm.pop()
 		if val <= 0:
 			jump = vm.map_goto_num(arg)
 			ret = vm.pos + 1
-			vm.append_exe(['JUMP', ret])
-			vm.append_exe(['JUMP', jump])
+			vm.append_exe(['RETURN', ret])
 		else:
 			jump = vm.pos + 1
-			vm.append_exe(['JUMP', jump])
+		vm.pos = jump
 
 class TESTTCALL_OPCODE(OPCODE):
 	jump = True
 	s = ['TESTTCALL', 'IFTCALL']
 	@classmethod
 	def run(cls, args, vm):
-		val, arg = vm.pop(2)
+		arg = vm.pop(t = int)
+		val = vm.pop()
 		if val > 0:
 			jump = vm.map_goto_num(args)
 			ret = vm.pos + 1
-			vm.append_exe(['JUMP', ret])
-			vm.append_exe(['JUMP', jump])
+			vm.append_exe(('RETURN', ret))
 		else:
 			jump = vm.pos + 1
-			vm.append_exe(['JUMP', jump])
+		vm.pos = jump
 
 
 class RETURN_OPCODE(OPCODE):
@@ -209,7 +209,36 @@ class RETURN_OPCODE(OPCODE):
 	s = 'RETURN'
 	@classmethod
 	def run(cls, args, vm):
-		pass
+		exe = vm.pop_exe()
+		if exe[0] != 'RETURN':
+			raise GridLangExecutionException("RETURN does not match with CALL in ExeStack")
+		vm.pos = exe[1]
+
+class DO_OPCODE(OPCODE):
+	jump = True
+	s = 'DO'
+	@classmethod
+	def run(cls, args, vm):
+		limit, index = vm.pop(2, t = int)
+		jump = vm.pos + 1
+		vm.append_exe(('LOOP', limit, index, jump))
+		vm.pos = jump
+
+class LOOP_OPCODE(OPCODE):
+	jump = True
+	s = 'LOOP'
+	@classmethod
+	def run(cls, args, vm):
+		exe = vm.pop_exe()
+		if exe[0] != 'LOOP':
+			raise GridLangExecutionException("LOOP does not match with DO in ExeStack")
+		limit, index, jump = exe[1:]
+		index = index + 1
+		if index >= limit:
+			jump = vm.pos + 1
+		else:
+			vm.append_exe(('LOOP', limit, index, jump))
+		vm.pos = jump
 
 class PRINT_OPCODE(OPCODE):
 	s = 'PRINT'

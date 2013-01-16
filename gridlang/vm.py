@@ -83,6 +83,15 @@ class GridLangVM(object):
 		self.trace("Pop", n, ret, self.data)
 		return ret
 
+	def pop_exe(self, n = 1):
+		i = len(self.exe) - n
+		if i < 0:
+			raise GridLangExecutionException("ExeStack Empty")
+		self.exe, ret = self.exe[:i], self.exe[i:]
+		if n == 1:
+			ret = ret[0]
+		return ret
+
 	def append(self, *args):
 		"""Push items onto stack"""
 		if self.data_limit is not None:
@@ -180,17 +189,8 @@ class GridLangVM(object):
 		# if command does not involve jumping go to next line
 		if cmd.jump == False:
 			self.pos = max(self.pos, newp)
-		else:
-			try:
-				ecmd = self.exe.pop()
-			except IndexError:
-				raise GridLangExecutionException("EXEC STACK EXHAUSTED")
-			# assume we're just JUMP-ing now
-			self.pos = ecmd[1]
-			if self.pos is None:
-				return False
 
-		if self.pos >= len(self.code.lines):
+		if (self.pos is None) or (self.pos >= len(self.code.lines)):
 			# ran off the bottom of the code
 			return False
 	
