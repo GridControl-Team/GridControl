@@ -280,6 +280,20 @@ class MAX_OPCODE(OPERATOR_OPCODE):
 	s = ['MAX', 'MAXIMUM']
 	o = max
 
+class AND_OPCODE(OPCODE):
+	s = 'AND'
+	@classmethod
+	def run(cls, args, vm):
+		left, right = vm.pop(2)
+		vm.append(int(left and right))
+
+class OR_OPCODE(OPCODE):
+	s = 'OR'
+	@classmethod
+	def run(cls, args, vm):
+		left, right = vm.pop(2)
+		vm.append(int(left or right))
+
 class PANIC_OPCODE(OPCODE):
 	s = 'PANIC'
 	@classmethod
