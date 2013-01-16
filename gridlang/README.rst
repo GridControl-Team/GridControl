@@ -182,6 +182,23 @@ example:
     RETURN
 
 
+Loops
+-----
+
+Loops are done using the ``DO`` and ``LOOP`` operators.  ``DO`` takes
+two arguments, the limit and the index.  The loop begins at ``DO`` with the
+provided index, which is increment when the code approaches ``LOOP``.  If
+the index equals the limit, execution continues, else it jumps back to the
+``DO``
+
+::
+    
+    PUSH 1
+    DO << 10 0 # do ten times
+    MUL << 2 # double number every loop
+    LOOP
+    PRINT # outputs 1024 (i.e., 2 ^ 10)
+
 
 GridLang Operations
 ===================
@@ -262,6 +279,10 @@ IFTCALL  --     2      0       If v, j from stack, if v > 0, call j
 IFFCALL  --     2      0       If v, j from stack, if v <= 0, call j
 RETURN   --     -      -       Pops from the exec stack, returning to where you
                                last ``CALL``-ed from.
+DO       --     2      0       Takes limit, index from stack, and beings a loop
+LOOP     --     -      -       Increments loop index, if it is less than limit,
+                               jump back to matching DO, else continue
+                               execution
 =======  =====  =====  ======  ================================================
 
 Debugging Operations
