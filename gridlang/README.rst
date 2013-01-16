@@ -265,6 +265,20 @@ AND      --     2      1       Push 1 if a && b else 0
 OR       --     2      1       Push 1 if a || b else 0
 =======  =====  =====  ======  ================================================
 
+Bitwise Operations
+------------------
+
+All operands must be integers.
+
+=======  =====  =====  ======  ================================================
+Command  Args   Pops   Pushes  Description
+=======  =====  =====  ======  ================================================
+BNOT     --     1      1       Take a from stack and push ~a
+BAND     --     2      1       Take a, b from stack and push a & b
+BOR      --     2      1       Take a, b from stack and push a | b
+BXOR     --     2      1       Take a, b from stack and push a ^ b
+=======  =====  =====  ======  ================================================
+
 Control Flow Operations
 -----------------------
 
