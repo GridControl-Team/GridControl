@@ -2,7 +2,9 @@
 OVERVIEW
 ========
 
-.. image:: http://i.imgur.com/AVZcz.png
+.. image:: http://i.imgur.com/Fnm9Y.png
+   :scale: 50 %
+   :alt: Awesome GridControl Logo
    :align: right
 
 GridControl is a Free-to-play In-browser Social Massive-Multiplayer-Online
