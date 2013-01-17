@@ -2,7 +2,7 @@
 OVERVIEW
 ========
 
-.. image:: http://i.imgur.com/Fnm9Y.png
+.. image:: http://i.imgur.com/Fnm9Y.png?1
    :scale: 50 %
    :alt: Awesome GridControl Logo
    :align: right
