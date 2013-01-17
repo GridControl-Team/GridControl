@@ -2,6 +2,9 @@
 OVERVIEW
 ========
 
+.. image: http://i.imgur.com/AVZcz.png
+   :align: right
+
 GridControl is a Free-to-play In-browser Social Massive-Multiplayer-Online
 Game, where you control your bot using a specialized stack-based language
 (called gridlang) and your github account.  Your bot can roam the grid,
