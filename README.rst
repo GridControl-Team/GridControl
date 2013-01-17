@@ -2,7 +2,7 @@
 OVERVIEW
 ========
 
-.. image: http://i.imgur.com/AVZcz.png
+.. image:: http://i.imgur.com/AVZcz.png
    :align: right
 
 GridControl is a Free-to-play In-browser Social Massive-Multiplayer-Online
