@@ -105,15 +105,15 @@
 		});
 
 		var sorted = _.sortBy(collection, function(score_id) {
-			return score_id.score;
+			return -score_id.score;
 		});
 
-		_.each(sorted, function(score_id) {
-			var userid = score_id.userid;
+		_.each(sorted, function(score) {
+			var userid = score.userid;
 			var username = this.get_username(userid);
 			var score = score.score;
 
-			var item = HighScoreIten({username: username, userid: userid, score: score});
+			var item = HighScoreItem({username: username, userid: userid, score: score});
 			$score.append(item);
 		}, this);
 	};
