@@ -196,7 +196,7 @@ class TESTTCALL_OPCODE(OPCODE):
 		arg = vm.pop(t = int)
 		val = vm.pop()
 		if val > 0:
-			jump = vm.map_goto_num(args)
+			jump = vm.map_goto_num(arg)
 			ret = vm.pos + 1
 			vm.append_exe(('RETURN', ret))
 		else:
