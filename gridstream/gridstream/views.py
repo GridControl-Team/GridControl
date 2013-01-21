@@ -131,6 +131,13 @@ class StreamComm(SocketConnection):
 		self.push_user_update()
 		self.push_user_history()
 	
+	def on_close(self):
+		self.userid = None
+		self.last_history_ts = None
+		self.state = None
+		self.redis.disconnect()
+		self.pubsub.disconnect()
+	
 	def on_subscribed(self, smt):
 		self.pubsub.listen(self.on_redis)
 
