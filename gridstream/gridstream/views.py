@@ -14,11 +14,10 @@ class StateHolder(object):
 		self.pubsub.connect()
 		self.pubsub.select(1)
 		self.pubsub.subscribe('global_tick', self.on_subscribed)
-		self.c = 4
+		self.c = 3
 		self.redis.hgetall("user_usernames", self.on_get_usernames)
 		self.redis.get("user_attr", self.on_get_userattr)
-		self.redis.get("users_data", self.on_get_users)
-		self.redis.get("resource_map", self.on_get_map)
+		self.redis.get("position_map", self.on_get_map)
 	
 	def on_subscribed(self, smt):
 		self.pubsub.listen(self.on_redis)
@@ -28,11 +27,10 @@ class StateHolder(object):
 			if msg.channel == 'global_tick' and msg.body == 'tick':
 				if self.c != 0:
 					return
-				self.c = 4
+				self.c = 3
 				self.redis.hgetall("user_usernames", self.on_get_usernames)
 				self.redis.get("user_attr", self.on_get_userattr)
-				self.redis.get("users_data", self.on_get_users)
-				self.redis.get("resource_map", self.on_get_map)
+				self.redis.get("position_map", self.on_get_map)
 
 	def on_get_usernames(self, val):
 		self.usernames = val
@@ -48,20 +46,13 @@ class StateHolder(object):
 		self.next()
 
 	def on_get_map(self, val):
-		self.map_data = json.loads(val, use_decimal=True)
-		self.map_h = len(self.map_data)
-		self.map_w = len(self.map_data[0])
+		pos_obj = json.loads(val, use_decimal=True)
+		self.pos_obj = dict((tuple(map(int, k.split(","))), v) for k, v in pos_obj.iteritems())
+		self.user_pos = dict((v['i'], k) for k, v in self.pos_obj.iteritems() if v['t'] == 3)
+		self.map_h = 400
+		self.map_w = 400
 		self.next()
 
-	def on_get_users(self, val):
-		if val is not None:
-			self.user_pos = json.loads(val, use_decimal=True)
-			self.pos_user = dict((tuple(v), k) for k, v in self.user_pos.iteritems())
-		else:
-			self.user_pos = {}
-			self.pos_user = {}
-		self.next()
-	
 	def next(self):
 		self.c = self.c - 1
 		if self.c == 0:
@@ -78,29 +69,20 @@ class StateHolder(object):
 				for x2 in xrange(x-map_r, x+map_r + 1):
 					y3 = y2 % self.map_h
 					x3 = x2 % self.map_w
-					l.append(self.map_data[y3][x3])
+					pos = (x3, y3)
+					if pos in self.pos_obj:
+						obj = self.pos_obj[pos]
+						if obj['t'] == 3:
+							l.append({'t':3, 'i':obj['i']})
+						else:
+							l.append({'t':obj['t']})
+					else:
+						l.append({'t':0})
 				m.append(l)
 			return m
 		else:
 			return []
 	
-	def get_users_for(self, userid):
-		uid = str(userid)
-		map_r = 5
-		if uid in self.user_pos:
-			x, y = self.user_pos[uid]
-			ret = {}
-			for y2 in xrange(y-map_r, y+map_r + 1):
-				for x2 in xrange(x-map_r, x+map_r + 1):
-					coord = (x2 % self.map_w, y2 % self.map_h)
-					if coord in self.pos_user:
-						user = self.pos_user[coord]
-						ret[user] = [x2 - x + map_r, y2 - y + map_r]
-			return ret
-		else:
-			return {}
-
-
 SH = StateHolder()
 
 class StreamComm(SocketConnection):
@@ -128,7 +110,6 @@ class StreamComm(SocketConnection):
 		self.push_usernames()
 		self.push_userscores()
 		self.push_map_update()
-		self.push_user_update()
 		self.push_user_history()
 	
 	def on_close(self):
@@ -148,7 +129,6 @@ class StreamComm(SocketConnection):
 					self.push_usernames()
 					self.push_userscores()
 					self.push_map_update()
-					self.push_user_update()
 					self.push_user_history()
 			else:
 				msg = {
@@ -175,13 +155,6 @@ class StreamComm(SocketConnection):
 		msg = {
 			'type': 'map',
 			'content': self.state.get_map_for(self.userid),
-		}
-		self.send(json.dumps(msg, use_decimal=True))
-
-	def push_user_update(self):
-		msg = {
-			'type': 'users',
-			'content': self.state.get_users_for(self.userid),
 		}
 		self.send(json.dumps(msg, use_decimal=True))
 

@@ -12,8 +12,8 @@ from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS, pluck, ATTRS, STAT
 
 from django.conf import settings
 
-MAP_WIDTH = 11
-MAP_HEIGHT = 11
+MAP_WIDTH = 400
+MAP_HEIGHT = 400
 
 def direction_from_pos(direction, pos):
 	delta = {
@@ -34,57 +34,36 @@ def get_random_position(x, y):
 
 
 class GameState(object):
-	def __init__(self, engine, map_val, user_val, user_attr):
+	def __init__(self, engine, pos_val, user_attr):
 		self.engine = engine
 		self.map_h = MAP_HEIGHT
 		self.map_w = MAP_WIDTH
-		if map_val is not None:
-			self.map_data = json.loads(map_val)
-			self.user_pos = json.loads(user_val)
-			self.pos_user = dict((tuple(v), k) for k, v in self.user_pos.iteritems())
-		else:
-			self.user_pos = {}
-			self.pos_user = {}
-			self.init_map()
-			self.init_resources()
 		if user_attr is not None:
 			self.user_attr = json.loads(user_attr)
 		else:
 			self.user_attr = {}
+		if pos_val is not None:
+			pos_obj = json.loads(pos_val, use_decimal=True)
+			self.pos_obj = dict((tuple(map(int, k.split(","))), v) for k, v in pos_obj.iteritems())
+			self.user_pos = dict((v['i'], k) for k, v in self.pos_obj.iteritems() if v['t'] == CONSTANTS.get('CELL_ROBOT'))
+		else:
+			self.pos_obj = {}
+			self.user_pos = {}
+			self.init_resources()
 
-	def init_map(self):
-		map_data = list([0,] * MAP_WIDTH for i in xrange(MAP_HEIGHT))
-		self.map_data = map_data
-	
 	def init_resources(self):
 		for x in xrange((MAP_WIDTH * MAP_HEIGHT) / 4):
 			self.spawn_resource()
+		for x in xrange((MAP_WIDTH * MAP_HEIGHT) / 8):
+			self.spawn_rock()
 
 	def spawn_user(self, user_id):
 		pos = self.get_open_position()
 		if pos is None:
 			raise GridLangException("Could not locate empty space for you! Sorry! It will try again next tick.")
 		self.user_pos[user_id] = pos
-		self.pos_user[pos] = user_id
-	
-	def obj_at(self, x, y):
-		m = self.map_data[y][x]
-		if m == 0 and (x, y) in self.pos_user:
-			return CONSTANTS.get('CELL_ROBOT')
-		return m
+		self.pos_obj[pos] = {'t': CONSTANTS.get("CELL_ROBOT"), 'i': user_id, 'x':pos[0], 'y':pos[1]}
 
-	def user_at(self, x, y):
-		c = (x, y)
-		if c in self.pos_user:
-			return self.pos_user[c]
-	
-	def get_open_position(self):
-		for i in xrange(1000):
-			pos = get_random_position(self.map_w-1, self.map_h-1)
-			if self.obj_at(*pos) == 0:
-				return pos
-		return None
-	
 	def randomly_spawn_resource(self):
 		for i in xrange(4):
 			if random.randint(0, 5) < 2:
@@ -93,8 +72,31 @@ class GameState(object):
 	def spawn_resource(self):
 		pos = self.get_open_position()
 		if pos is not None:
-			self.map_data[pos[1]][pos[0]] = 1
+			self.pos_obj[pos] = {'t':CONSTANTS.get("CELL_RESOURCE"), 'x':pos[0], 'y':pos[1]}
+	
+	def spawn_rock(self):
+		pos = self.get_open_position()
+		if pos is not None:
+			self.pos_obj[pos] = {'t':CONSTANTS.get("CELL_ROCK"), 'x':pos[0], 'y':pos[1]}
+	
+	def obj_at(self, x, y):
+		pos = (x, y)
+		if pos in self.pos_obj:
+			return self.pos_obj[pos]['t']
+		return CONSTANTS.get('CELL_EMPTY')
 
+	def user_at(self, x, y):
+		pos = (x, y)
+		if pos in self.pos_obj and self.pos_obj[pos]['t'] == CONSTANTS.get("CELL_ROBOT"):
+			return self.pos_obj[pos]['i']
+	
+	def get_open_position(self):
+		for i in xrange(1000):
+			pos = get_random_position(self.map_w-1, self.map_h-1)
+			if self.obj_at(*pos) == 0:
+				return pos
+		return None
+	
 	def add_resource(self, user_id):
 		self.incr_user_attr(user_id, "resources", 1)
 	
@@ -103,14 +105,22 @@ class GameState(object):
 	
 	def do_user_move(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -5)
-		old_pos = list(self.user_pos.get(user_id))
+		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 0:
 			self.user_pos[user_id] = new_pos
-			self.pos_user[tuple(new_pos)] = user_id
-			del self.pos_user[tuple(old_pos)]
+			self.pos_obj[new_pos] = {'i':user_id, 't':CONSTANTS.get("CELL_ROBOT"), 'x':new_pos[0], 'y':new_pos[1]}
+			del self.pos_obj[old_pos]
 			return 1
 		return 0
+
+	def do_obj_move(self, pos, direction):
+		new_pos = direction_from_pos(direction, pos)
+		obj = dict(self.pos_obj[pos])
+		obj['x'] = new_pos[0]
+		obj['y'] = new_pos[1]
+		self.pos_obj[new_pos] = obj
+		del self.pos_obj[pos]
 	
 	def do_user_look(self, user_id, direction):
 		old_pos = list(self.user_pos.get(user_id))
@@ -128,34 +138,34 @@ class GameState(object):
 	def do_user_pull(self, user_id, direction):
 		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
-		if self.obj_at(*new_pos) == 1:
-			self.map_data[new_pos[1]][new_pos[0]] = 0
+		if self.obj_at(*new_pos) == CONSTANTS.get("CELL_RESOURCE"):
+			del self.pos_obj[new_pos]
 			self.add_resource(user_id)
 			return 1
 		return 0
 
 	def do_user_push(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -10)
-		old_pos = list(self.user_pos.get(user_id))
+		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
-		target = self.user_at(*new_pos)
-		if target is not None:
+		target = self.obj_at(*new_pos)
+		if target in (CONSTANTS.get("CELL_ROCK"), CONSTANTS.get("CELL_ROBOT")):
 			new_posb = direction_from_pos(direction, new_pos)
 			if self.obj_at(*new_posb) == 0:
-				self.do_user_move(target, direction)
+				self.do_obj_move(new_pos, direction)
 				self.do_user_move(user_id, direction)
 				return 1
 		return 0
 
 	def do_user_punch(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -10)
-		old_pos = list(self.user_pos.get(user_id))
+		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
 		target = self.user_at(*new_pos)
 		if target is not None:
 			self.user_history(target, "YOUR BOT", "WAS ATTACKED", 0)
 			self.kill_user(target)
-			self.map_data[new_pos[1]][new_pos[0]] = 1
+			self.pos_obj[new_pos] = {'t':CONSTANTS.get("CELL_RESOURCE"), 'x':new_pos[0], 'y':new_pos[1]}
 			return 1
 		return 0
 
@@ -230,10 +240,9 @@ class GameState(object):
 
 	def kill_user(self, user_id):
 		self.set_user_attr(user_id, "status", CONSTANTS.get("DEAD"))
-		old_pos = self.user_pos.get(user_id)
-		if old_pos is not None:
-			del self.user_pos[user_id]
-			del	self.pos_user[tuple(old_pos)]
+		old_pos = self.user_pos[user_id]
+		del self.user_pos[user_id]
+		del	self.pos_obj[old_pos]
 		self.user_history(user_id, "YOUR BOT", "HAS DIED", 0)
 		self.set_user_attr(user_id, "charge", 0)
 	
@@ -242,8 +251,9 @@ class GameState(object):
 	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
-		redis.set("resource_map", json.dumps(self.map_data))
 		redis.set("user_attr", json.dumps(self.user_attr))
+		pos_obj = dict(("{0},{1}".format(*k), v) for k,v in self.pos_obj.iteritems())
+		redis.set("position_map", json.dumps(pos_obj))
 
 
 class GridControlEngine(object):
@@ -440,13 +450,10 @@ class GridControlEngine(object):
 		if active_users is None:
 			return
 
-		resource_map_raw = self.redis.get("resource_map")
-		users_data_raw = self.redis.get("users_data")
-		if users_data_raw is None:
-			users_data_raw = "{}"
+		position_map_raw = self.redis.get("position_map")
 		user_attr_raw = self.redis.get("user_attr")
 
-		gamestate = GameState(self, resource_map_raw, users_data_raw, user_attr_raw)
+		gamestate = GameState(self, position_map_raw, user_attr_raw)
 
 		# tick environment
 		gamestate.randomly_spawn_resource()

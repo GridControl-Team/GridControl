@@ -141,8 +141,20 @@
 		_.each(resource_map, function(row) {
 			this.$el.append("<div class='grid-break'></div>");
 			_.each(row, function(v) {
-				if (v === 1) {
+				if (v.t === 1) {
 					this.$el.append("<div class='grid grid-resource'>$</div>");
+				} else if (v.t === 2) {
+					this.$el.append("<div class='grid grid-rock'>O</div>");
+				} else if (v.t === 3) {
+					var user_id = v.i;
+					var username = this.get_username(user_id);
+					var $user_el = $("<div class='grid grid-user'>@</div>");
+					$user_el.attr("data-userid", user_id);
+					$user_el.attr("data-username", username);
+					var $span = $("<span></span>");
+					$span.text(username);
+					$user_el.append($span);
+					this.$el.append($user_el);
 				} else {
 					this.$el.append("<div class='grid grid-ground'>_</div>");
 				}
@@ -152,15 +164,6 @@
 
 	screen.update_users = function(users) {
 		_.each(users, function(v, k) {
-			var username = this.get_username(k);
-			var $el = $("<div class='grid grid-user'>@</div>");
-			$el.attr("data-userid", k);
-			$el.attr("data-username", username);
-			$el.css({"left": v[0] * 25, "top": v[1] * 25});
-			var $span = $("<span></span>");
-			$span.text(username);
-			$el.append($span);
-			this.$el.append($el);
 		}, this);
 	};
 
