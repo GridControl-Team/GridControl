@@ -17,17 +17,16 @@ MAP_HEIGHT = 11
 
 def direction_from_pos(direction, pos):
 	delta = {
-		0: [0, 0],
-		1: [0, -1],
-		2: [1, 0],
-		3: [0, 1],
-		4: [-1, 0],
-	}.get(direction)
-	new_pos = [(pos[0] + delta[0]) % MAP_WIDTH, (pos[1] + delta[1]) % MAP_HEIGHT]
+		1: (0, -1),
+		2: (1, 0),
+		3: (0, 1),
+		4: (-1, 0),
+	}.get(direction, (0, 0))
+	new_pos = ((pos[0] + delta[0]) % MAP_WIDTH, (pos[1] + delta[1]) % MAP_HEIGHT)
 	return new_pos
 
 def vector_from_pos(vector, pos):
-	new_pos = [(pos[0] + vector[0]) % MAP_WIDTH, (pos[1] + vector[1]) % MAP_HEIGHT]
+	new_pos = ((pos[0] + vector[0]) % MAP_WIDTH, (pos[1] + vector[1]) % MAP_HEIGHT)
 	return new_pos
 
 def get_random_position(x, y):
