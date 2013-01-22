@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 		url(r'^account/logout/$', 'gridcontrol.content.views.account_logout', name='logout'),
 		url(r'^view_code/(?P<userid>\d+)/?', 'gridcontrol.content.views.view_code', name='view_code'),
 		url(r'^use_gist/(?P<gist_id>[^/]+)/?', 'gridcontrol.content.views.use_gist', name='use_gist'),
-		url(r'^gist_viewer/(?P<gist_id>[^/]+)/?', 'gridcontrol.content.views.gist_viewer', name='gist_viewer'),
+		url(r'^gist_viewer/(?P<gist_id>[^/]+)/(?P<gist_revision>[^/]+)?/?$', 'gridcontrol.content.views.gist_viewer', name='gist_viewer'),
 		url(r'', include('social_auth.urls')),
 		url(r'^admin/', include(admin.site.urls)),
 )

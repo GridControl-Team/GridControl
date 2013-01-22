@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django import forms
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
 from gridcontrol.engine.tasks import get_client, register_code
@@ -106,14 +107,22 @@ def use_gist(request, gist_id=0):
 	return render_to_response("account/use_gist.html", ctx, RequestContext(request))
 
 @login_required
-def gist_viewer(request, gist_id=0):
-	print "Looking for gists with ID: %s" % unicode(gist_id)
-	print "Gists" ##DEBUG
-	pprint(request.session['gists']) ##DEBUG
-	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
+def gist_viewer(request, gist_id=0, gist_revision=""):
 	gist_retriever = GistRetriever(request.user.username)
+	gist_revisions = gist_retriever.get_gist_history(gist_id)
 	gist_texts = {}
-	for gist_fname, gist_fdata in gist['files'].items():
-		gist_texts[gist_fname] = gist_retriever.get_file_text(gist_fdata['raw_url'])
-	ctx = {"gist_texts": gist_texts}
+	if not gist_revision:
+		#Gist revision not specified, so get the latest gist
+		gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
+		for gist_fname, gist_fdata in gist['files'].items():
+			gist_texts[gist_fname] = gist_retriever.get_file_text(gist_fdata['raw_url'])
+	else:
+		gist_info = gist_retriever.get_gist_version(gist_id, gist_revision)
+		for file_dict in gist_info:
+			gist_texts[file_dict["filename"]] = gist_retriever.get_file_text(file_dict["text_url"])
+	ctx = {	"gist_id": gist_id,
+			"gist_texts": gist_texts,
+			"gist_revisions": gist_revisions}
 	return render_to_response("account/gist_viewer.html", ctx, RequestContext(request))
+		
+

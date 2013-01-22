@@ -4,4 +4,10 @@
 		<h1>{{file_name}}</h1>
 		<pre>{{file_text}}</pre>
 	{% endfor %}
+	<h2>Previous Revisions</h2>
+	<ul>
+	{% for gist_url, version_string in gist_revisions %}
+		<li><a href="{% url gist_viewer gist_id=gist_id, gist_revision=version_string %}">{{version_string}}</a></li>
+	{% endfor %}
+	</ul>
 {% endblock %}

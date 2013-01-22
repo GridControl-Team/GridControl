@@ -15,13 +15,22 @@ class GistRetriever:
 				description: the (user specified) description
 				files: a dictionary where the keys are filenames and the values are dictionaries containing the URL to the file, the file size and the file name (again)
 		"""
-		if settings.GRIDCONTROL_GIST_MAX_SIZE:
-			max_size = settings.GRIDCONTROL_GIST_MAX_SIZE * 1024
-		else:
-			max_size = DEFAULT_MAX_SIZE * 1024
 		gist_response = requests.get("https://api.github.com/users/%s/gists" % self.user)
 		gist_json = gist_response.json()
 		return [{'id': g['id'], 'description': g['description'], 'files': g['files']} for g in gist_json]
+
+	def get_gist_history(self, gist_id):
+		""" This method retrieves the revision history for a given gist.
+		History is returned as a list of (revision, URL) tuples."""
+		gist_response = requests.get("https://api.github.com/gists/%s" % str(gist_id))
+		gist_json = gist_response.json()
+		return [(revision["url"], revision["version"]) for revision in gist_json["history"]]
+	
+	def get_gist_version(self, gist_id, gist_version):
+		"""This method retrieves the raw URL of a specific version of a gist, given the URL to that version"""
+		url = "https://api.github.com/gists/%s/%s" % (str(gist_id), str(gist_version))
+		gist_info = requests.get(url).json()
+		return [{"filename": file_info["filename"], "text_url": file_info["raw_url"]} for file_info in gist_info["files"].values()] 
 
 
 	def get_file_text(self, raw_url):
