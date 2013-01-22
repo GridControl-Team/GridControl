@@ -1,6 +1,17 @@
 from tornadio2 import TornadioRouter, SocketConnection
 import tornadoredis
 import simplejson as json
+from collections import namedtuple
+
+MapObj = namedtuple("MapObj", ['x', 'y', 't', 'i'])
+
+def makeMapObj(d):
+	return MapObj(
+		d.get('x'),
+		d.get('y'),
+		d.get('t'),
+		d.get('i'),
+	)
 
 class StateHolder(object):
 	def __init__(self):
@@ -47,8 +58,8 @@ class StateHolder(object):
 
 	def on_get_map(self, val):
 		pos_obj = json.loads(val, use_decimal=True)
-		self.pos_obj = dict((tuple(map(int, k.split(","))), v) for k, v in pos_obj.iteritems())
-		self.user_pos = dict((v['i'], k) for k, v in self.pos_obj.iteritems() if v['t'] == 3)
+		self.pos_obj = dict((tuple(map(int, k.split(","))), makeMapObj(v)) for k, v in pos_obj.iteritems())
+		self.user_pos = dict((v.i, k) for k, v in self.pos_obj.iteritems() if v.t == 3)
 		self.map_h = 400
 		self.map_w = 400
 		self.next()
@@ -72,10 +83,10 @@ class StateHolder(object):
 					pos = (x3, y3)
 					if pos in self.pos_obj:
 						obj = self.pos_obj[pos]
-						if obj['t'] == 3:
-							l.append({'t':3, 'i':obj['i']})
+						if obj.t == 3:
+							l.append({'t':3, 'i':obj.i})
 						else:
-							l.append({'t':obj['t']})
+							l.append({'t':obj.t})
 					else:
 						l.append({'t':0})
 				m.append(l)
