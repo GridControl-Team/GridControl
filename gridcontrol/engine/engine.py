@@ -429,7 +429,7 @@ class GridControlEngine(object):
 		vm.set_code(user_code)
 		if user_vm is not None:
 			flags = user_vm.get('flags')
-			if len(set(flags) & set(["end", "crash"])):
+			if not len(set(flags) & set(["end", "crash"])):
 				vm.thaw(user_vm)
 		#vm.debug = True
 		try:
