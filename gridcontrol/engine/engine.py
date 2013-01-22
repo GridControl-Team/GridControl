@@ -429,7 +429,7 @@ class GridControlEngine(object):
 		vm.set_code(user_code)
 		if user_vm is not None:
 			flags = user_vm.get('flags')
-			if not ('end' in flags or 'crash' in flags):
+			if len(set(flags) & set(["end", "crash"])):
 				vm.thaw(user_vm)
 		#vm.debug = True
 		try:
@@ -467,6 +467,8 @@ class GridControlEngine(object):
 				if user_id not in gamestate.user_pos:
 					# new user, place them on map somewhere
 					gamestate.spawn_user(user_id)
+					# also restart their vm
+					self.clear_user_vm(user_id)
 				self.tick_user(user_id, gamestate)
 			except GridLangException as e:
 				print "USER {0} HAD VM ISSUE".format(user_id)
