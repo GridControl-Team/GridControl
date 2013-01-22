@@ -182,6 +182,8 @@ CELERY_TASK_PUBLISH_RETRY_POLICY = {
 	'interval_max': 60 * 30,
 }
 
+CELERYD_NODES = "w1 w2 w3"
+
 SECRET_KEY = 'lolthisisnotmysecret'
 BROKER_URL = 'redis://localhost:6379/0' # 0 is for celery
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
