@@ -26,11 +26,16 @@ class GistRetriever:
 		gist_json = gist_response.json()
 		return [(revision["url"], revision["version"]) for revision in gist_json["history"]]
 	
-	def get_gist_version(self, gist_id, gist_version):
+	def get_gist_version(self, gist_id, gist_version=""):
 		"""This method retrieves the raw URL of a specific version of a gist, given the URL to that version"""
-		url = "https://api.github.com/gists/%s/%s" % (str(gist_id), str(gist_version))
+		if gist_version:
+			url = "https://api.github.com/gists/%s/%s" % (str(gist_id), str(gist_version))
+			print "Sending API call to %s" % url #DEBUG
+		else:
+			url = "https://api.github.com/gists/%s" % str(gist_id)
+			print "Sending API call to %s" % url #DEBUG
 		gist_info = requests.get(url).json()
-		return [{"filename": file_info["filename"], "text_url": file_info["raw_url"]} for file_info in gist_info["files"].values()] 
+		return [{"filename": file_info["filename"], "text_url": file_info["raw_url"], "size": file_info["size"]} for file_info in gist_info["files"].values()] 
 
 
 	def get_file_text(self, raw_url):

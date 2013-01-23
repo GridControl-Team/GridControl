@@ -13,11 +13,6 @@
 				{% endif %}
 				<ul class="gist_actions">
 					<li>
-						<a href="{% url use_gist gist_id=gist.id %}">
-							<i class="icon-download"></i>Use
-						</a>
-					</li>
-					<li>
 						<a href="{% url gist_viewer gist_id=gist.id %}">
 							<i class="icon-eye-open"></i>View
 						</a>
