@@ -17,6 +17,14 @@
 							<i class="icon-eye-open"></i>View
 						</a>
 					</li>
+					<li>
+						<form method="POST" action="{% url use_gist %}">
+							{% csrf_token %}
+							<input type="hidden" name="gist_id" value="{{gist.id}}" />
+							<input type="hidden" name="gist_revision" value="" />
+							<input type="submit" value="Use gist" />
+						</form>
+					</li>
 				</ul>
 			</li>
 			{% empty %}

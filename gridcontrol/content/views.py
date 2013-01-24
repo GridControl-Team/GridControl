@@ -97,7 +97,7 @@ def use_gist(request):
 				if(int(gfile["size"]) < computed_max_size):
 					success, msg = register_code(request.user, gfile["text_url"])
 				else:
-					success, msg = False, 'file {} too large.  less coad pls'.format(gist_fdata['raw_url'])
+					success, msg = False, 'file {} too large.  less coad pls'.format(gfile['text_url'])
 				break
 		print "Success: %s" % str(success) #DEBUG
 		print "Message: %s" % msg #DEBUG
