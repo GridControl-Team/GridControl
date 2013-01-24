@@ -20,9 +20,9 @@
 					<li>
 						<form method="POST" action="{% url use_gist %}">
 							{% csrf_token %}
-							<input type="hidden" name="gist_id" value="{{gist.id}}" />
-							<input type="hidden" name="gist_revision" value="" />
-							<input type="submit" value="Use gist" />
+							<input type="hidden" name="gist_id" value="{{gist.id}}">
+							<input type="hidden" name="gist_revision" value="">
+							<button class="btn btn-mini"><i class="icon-download"></i> Use Gist</button>
 						</form>
 					</li>
 				</ul>

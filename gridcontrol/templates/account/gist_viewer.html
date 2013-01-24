@@ -6,9 +6,9 @@
 	{% endfor %}
 	<form action="{% url use_gist %}" method="POST">
 		{% csrf_token %}
-		<input type="hidden" name="gist_id" value="{{gist_id}}" />
-		<input type="hidden" name="gist_revision" value="{{gist_revision}}" />
-		<input type="submit" value="Use this version" />
+		<input type="hidden" name="gist_id" value="{{gist_id}}">
+		<input type="hidden" name="gist_revision" value="{{gist_revision}}">
+		<button class="btn"><i class="icon-download"></i> Use this Version</button>
 	</form>
 	<h2>Previous Revisions</h2>
 	<ul>
