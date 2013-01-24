@@ -1,12 +1,13 @@
 # Create your views here.
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib.auth import logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django import forms
 from gridcontrol.gist_retriever import GistRetriever
 from pprint import pprint ##DEBUG
 from gridcontrol.engine.tasks import get_client, register_code
@@ -77,43 +78,54 @@ def account_gists(request):
 	return render_to_response("account/gists.html", ctx, RequestContext(request))
 
 @login_required
-def use_gist(request, gist_id=0):
-	gist = (g for g in request.session['gists'] if g['id'] == unicode(gist_id)).next()
-	code = None
-	success = False
-	msg = ""
-	ctx = {}
-	gist_retriever = GistRetriever(request.user.username)
+def use_gist(request):
+	if request.method == "POST":
+		code = None
+		success = False
+		msg = ""
+		ctx = {}
+		computed_max_size = settings.GRIDCONTROL_GIST_MAX_SIZE
+		gist_retriever = GistRetriever(request.user.username)
+		gist_id = request.POST['gist_id']
+		gist_revision = request.POST['gist_revision']
+		gist_files = gist_retriever.get_gist_version(gist_id, gist_revision)
+		print "# of files found: %d" % len(gist_files)
+		for gfile in gist_files:
+			print "Filename: %s" % gfile["filename"] #DEBUG
+			if _valid_ext(gfile["filename"]):
+				ctx["filename"] = gfile["filename"]
+				if(int(gfile["size"]) < computed_max_size):
+					success, msg = register_code(request.user, gfile["text_url"])
+				else:
+					success, msg = False, 'file {} too large.  less coad pls'.format(gfile['text_url'])
+				break
+		print "Success: %s" % str(success) #DEBUG
+		print "Message: %s" % msg #DEBUG
+		ctx['success'] = success
+		ctx['message'] = msg
 
-	computed_max_size = settings.GRIDCONTROL_GIST_MAX_SIZE
+		user = request.user
+		gce = GridControlEngine(get_client())
+		gce.activate_user(user.id, user.username)
 
-	for gist_fname, gist_fdata in gist['files'].items():
-		if _valid_ext(gist_fname):
-			ctx['filename'] = gist_fname
-			if gist_fdata['size'] < computed_max_size:
-				success, msg = register_code(request.user, gist_fdata['raw_url'])
-			else:
-				success, msg = False, 'file {} too large.  less coad pls'.format(gist_fdata['raw_url'])
-			break
-
-	ctx['success'] = success
-	ctx['message'] = msg
-
-	user = request.user
-	gce = GridControlEngine(get_client())
-	gce.activate_user(user.id, user.username)
-
-	return render_to_response("account/use_gist.html", ctx, RequestContext(request))
+		return render_to_response("account/use_gist.html", ctx, RequestContext(request))
+	else:
+		return HttpResponseNotAllowed(['POST'])
 
 @login_required
-def gist_viewer(request, gist_id=0):
-	print "Looking for gists with ID: %s" % unicode(gist_id)
-	print "Gists" ##DEBUG
-	pprint(request.session['gists']) ##DEBUG
-	gist = [gist for gist in request.session['gists'] if gist['id'] == unicode(gist_id)][0]
+def gist_viewer(request, gist_id=0, gist_revision=""):
 	gist_retriever = GistRetriever(request.user.username)
+	gist_revisions = gist_retriever.get_gist_history(gist_id)
 	gist_texts = {}
-	for gist_fname, gist_fdata in gist['files'].items():
-		gist_texts[gist_fname] = gist_retriever.get_file_text(gist_fdata['raw_url'])
-	ctx = {"gist_texts": gist_texts}
+	gist_info = gist_retriever.get_gist_version(gist_id, gist_revision)
+	for file_dict in gist_info:
+		gist_texts[file_dict["filename"]] = gist_retriever.get_file_text(file_dict["text_url"])
+	print "Viewing gist: %s" % gist_id #DEBUG
+	ctx = {	"gist_id": gist_id,
+			"gist_revision": gist_revision,
+			"gist_texts": gist_texts,
+			"gist_revisions": gist_revisions}
+	pprint(ctx) #DEBUG
 	return render_to_response("account/gist_viewer.html", ctx, RequestContext(request))
+		
+

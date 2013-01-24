@@ -4,4 +4,16 @@
 		<h1>{{file_name}}</h1>
 		<pre>{{file_text}}</pre>
 	{% endfor %}
+	<form action="{% url use_gist %}" method="POST">
+		{% csrf_token %}
+		<input type="hidden" name="gist_id" value="{{gist_id}}" />
+		<input type="hidden" name="gist_revision" value="{{gist_revision}}" />
+		<input type="submit" value="Use this version" />
+	</form>
+	<h2>Previous Revisions</h2>
+	<ul>
+	{% for gist_url, version_string in gist_revisions %}
+		<li><a href="{% url gist_viewer gist_id=gist_id, gist_revision=version_string %}">{{version_string}}</a></li>
+	{% endfor %}
+	</ul>
 {% endblock %}
