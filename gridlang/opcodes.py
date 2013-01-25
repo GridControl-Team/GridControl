@@ -372,5 +372,9 @@ class CALLFF_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		v = vm.pop(1)
-		args = list(vm.pop(v))
+		if v == 0:
+			return
+		args = vm.pop(v)
+		if v == 1:
+			args = [args]
 		vm.callff(*args)
