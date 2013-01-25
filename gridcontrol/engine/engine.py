@@ -4,6 +4,9 @@ import simplejson as json
 import time
 import requests
 
+import traceback
+import sys
+
 from gridlang import GridLangVM, GridLangParser
 from gridlang.errors import *
 from gridlang.parser import GridLangCode
@@ -480,7 +483,8 @@ class GridControlEngine(object):
 				self.redis.publish(channel, msg)
 			except Exception as e:
 				print "USER {0} HAS UNCAUGHT ISSUE".format(user_id)
-				print e
+				exc_type, exc_value, exc_traceback = sys.exc_info()
+				traceback.print_exception(type(e), e, exc_traceback)
 				channel = "user_msg_{0}".format(user_id)
 				msg = "{0}\n\n{1}".format("GRIDLANG Exception", e.message)
 				self.redis.publish(channel, msg)
