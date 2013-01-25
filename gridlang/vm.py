@@ -67,7 +67,7 @@ class GridLangVM(object):
 	###### VM data access methods ########
 	# These methods are used in OPCODE run method to access data, use these
 	# methods because exception handling is a good idea
-	def pop(self, n = 1, t = None):
+	def pop(self, n = 1, t = None, force_list=False):
 		"""Pop n items off of stack"""
 		i = len(self.data) - n
 		if i < 0:
@@ -78,7 +78,7 @@ class GridLangVM(object):
 				print "Expected:", t
 				print "Got:", ret
 				raise GridLangExecutionException("Type error")
-		if n == 1:
+		if n == 1 and not force_list:
 			ret = ret[0]
 		self.trace("Pop", n, ret, self.data)
 		return ret

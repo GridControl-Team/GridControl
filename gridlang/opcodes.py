@@ -247,6 +247,14 @@ class PRINT_OPCODE(OPCODE):
 		val = vm.pop()
 		print val
 
+class PRINTSTR_OPCODE(OPCODE):
+	s = 'PRINTSTR'
+	@classmethod
+	def run(cls, args, vm):
+		val = vm.pop()
+		args = vm.pop(val, force_list=True)
+		print "".join(chr(i) for i in args)
+
 class END_OPCODE(OPCODE):
 	s = ['EXIT', 'END']
 	@classmethod
@@ -372,9 +380,5 @@ class CALLFF_OPCODE(OPCODE):
 	@classmethod
 	def run(cls, args, vm):
 		v = vm.pop(1)
-		if v == 0:
-			return
-		args = vm.pop(v)
-		if v == 1:
-			args = [args]
+		args = vm.pop(v, force_list=True)
 		vm.callff(*args)

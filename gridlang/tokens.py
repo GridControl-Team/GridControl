@@ -42,6 +42,12 @@ class TOKEN_INT(TOKEN):
 	def emit(cls, i):
 		return int(i)
 
+class TOKEN_CHAR(TOKEN):
+	r = r'^\'.\'$'
+	@classmethod
+	def emit(cls, i):
+		return ord(i[1])
+
 class TOKEN_FLOAT(TOKEN):
 	r = r'^-?\d+\.\d+$'
 	@classmethod
@@ -52,7 +58,7 @@ class TOKEN_CONSTANT(TOKEN):
 	r = r'^@\w+$'
 
 	def __init__(self, i):
-		self.val = i
+		self.val = i.upper()
 
 	@classmethod
 	def emit(cls, i):
@@ -70,6 +76,9 @@ class TOKEN_PUSHSUGAR(TOKEN):
 
 class TOKEN_LABEL(TOKEN):
 	r = r'^\w+$'
+	@classmethod
+	def emit(cls, i):
+		return i.upper()
 
 class TOKEN_JUNK(TOKEN):
 	r = r'.*'

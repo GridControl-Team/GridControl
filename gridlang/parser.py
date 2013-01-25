@@ -2,6 +2,9 @@ from tokens import TOKENS, TOKEN_CONSTANT, TOKEN_PUSHSUGAR, TOKEN_JUNK, TOKEN_CO
 from opcodes import PUSH_OPCODE
 from errors import *
 from decimal import Decimal
+import re
+
+CHAR_STRING_RE = re.compile(r'\'.*?\'|\S+')
 
 class GridLangCode(object):
 	def __init__(self):
@@ -53,6 +56,10 @@ class GridLangParser(object):
 		return matched
 
 	@classmethod
+	def split_line(cls, line):
+		return CHAR_STRING_RE.findall(line)
+
+	@classmethod
 	def parse(cls, code, constants=None, line_limit=None, const_limit=None):
 		glc = GridLangCode()
 		glc.raw = code
@@ -72,9 +79,9 @@ class GridLangParser(object):
 
 		for src_ln, line in enumerate(lines):
 			ln = len(glc.lines)
-			line = line.strip().upper()
+			line = line.strip()
 
-			parts_raw = line.split()
+			parts_raw = cls.split_line(line)
 
 			parts = []
 			parts_push = []
