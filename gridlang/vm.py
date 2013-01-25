@@ -124,6 +124,11 @@ class GridLangVM(object):
 			return self.data[addr]
 		except IndexError:
 			raise GridLangExecutionException("Invalid Stack Access")
+	
+	def peekn(self, addr, l):
+		if addr + l > len(self.data):
+			raise GridLangExecutionException("Invalid Stack Access")
+		return self.data[addr:addr+l]
 
 	def poke(self, addr, val):
 		"""Look at addr in stack"""
@@ -131,6 +136,15 @@ class GridLangVM(object):
 			self.data[addr] = val
 		except IndexError:
 			raise GridLangExecutionException("Invalid Stack Access")
+	
+	def poken(self, addr, val):
+		l = len(val)
+		if addr > l:
+			raise GridLangExecutionException("Invalid Stack Access")
+		if self.data_limit is not None:
+			if addr + l > self.data_limit:
+				raise GridLangExecutionException("Data Stack exhausted")
+		self.data = self.data[:addr] + val + self.data[addr+l:]
 	
 	def here(self):
 		"""Get current address in stack"""

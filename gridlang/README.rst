@@ -199,6 +199,28 @@ the index equals the limit, execution continues, else it jumps back to the
     LOOP
     PRINT # outputs 1024 (i.e., 2 ^ 10)
 
+Strings
+-------
+
+Gridlang has limited support for text.  In general, gridlang supports ascii
+by representing each character using their byte value.  ``PRINTSTR`` takes
+a length, pops that number of values from the stack, convert to characters
+before outputting to console.  Thus, the following is a way to write a
+helloworld program:
+
+::
+    
+    << 72 101 108 108 111 32 87 111 114 108 100 33 12
+    PRINTSTR << 13
+
+Gridlang also supports char literals, which in the compiler get replaced
+by their byte value.  Thus, this is a read-friendly way to write helloworld:
+
+::
+    
+    << 'H' 'e' 'l' 'l' 'o' ' ' 'W' 'o' 'r' 'l' 'd' '!'
+    PRINTSTR << 13
+
 
 GridLang Operations
 ===================
@@ -220,6 +242,12 @@ HERE     --     0      1       Returns current location of stack
 PEEK     --     1      1       Push value at given location in stack
 POKE     --     2      0       Take x, addr from stack, and set location addr
                                in stack to value x
+PEEKN    --     2      1       Take addr, l from stack, and push a slice of
+                               data at location addr in stack (with length l)
+                               to the top of the stack
+POKEN    --     2      0       Take addr, l from stack, then take a slice of
+                               data (length l) from top of stack and write it
+                               into the stack at location addr
 RAND     --     1      1       Take x from stack, and push random integer
                                between (0, x) inclusive
 =======  =====  =====  ======  ================================================
@@ -299,13 +327,23 @@ LOOP     --     -      -       Increments loop index, if it is less than limit,
                                execution
 =======  =====  =====  ======  ================================================
 
+Output Operations
+-----------------
+
+========  =====  =====  ======  ===============================================
+Command   Args   Pops   Pushes  Description
+========  =====  =====  ======  ===============================================
+PRINT     --     1      0       Take top value from stack and output it
+PRINTSTR  --     1+?    0       Take l from stack, then take top l values from
+                                stack and output as string
+========  =====  =====  ======  ===============================================
+
 Debugging Operations
 --------------------
 
 =======  =====  =====  ======  ================================================
 Command  Args   Pops   Pushes  Description
 =======  =====  =====  ======  ================================================
-PRINT    --     1      0       Take top value from stack and output it
 PANIC    --     0      0       Raise an exception and provide a trace
 END      --     0      0       Stop execution
 =======  =====  =====  ======  ================================================

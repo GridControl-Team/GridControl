@@ -103,9 +103,17 @@ class PEEK_OPCODE(OPCODE):
 	s = 'PEEK'
 	@classmethod
 	def run(cls, args, vm):
-		a = vm.pop()
-		val = vm.peek(a)
+		addr = vm.pop()
+		val = vm.peek(addr)
 		vm.append(val)
+
+class PEEKN_OPCODE(OPCODE):
+	s = 'PEEKN'
+	@classmethod
+	def run(cls, args, vm):
+		addr, l = vm.pop(2, t=int)
+		val = vm.peekn(addr, l)
+		vm.append(*val)
 
 class POKE_OPCODE(OPCODE):
 	s = 'POKE'
@@ -114,6 +122,14 @@ class POKE_OPCODE(OPCODE):
 		addr = vm.pop(t=int)
 		val = vm.pop()
 		vm.poke(addr, val)
+
+class POKEN_OPCODE(OPCODE):
+	s = 'POKEN'
+	@classmethod
+	def run(cls, args, vm):
+		addr, l = vm.pop(2, t=int)
+		val = vm.pop(l, force_list=True)
+		vm.poken(addr, val)
 
 class HERE_OPCODE(OPCODE):
 	s = 'HERE'
