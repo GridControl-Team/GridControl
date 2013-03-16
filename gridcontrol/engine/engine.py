@@ -3,6 +3,7 @@ import operator
 import simplejson as json
 import time
 import requests
+from collections import namedtuple
 
 import traceback
 import sys
@@ -12,11 +13,12 @@ from gridlang.errors import *
 from gridlang.parser import GridLangCode
 from gridcontrol.gist_retriever import GistRetriever
 from gridcontrol.engine.ffi import GridControlFFI, CONSTANTS, pluck, ATTRS, STATUS
-
 from django.conf import settings
 
 MAP_WIDTH = 400
 MAP_HEIGHT = 400
+
+GridObj = namedtuple("GridObj", ['t', 'i', 'x', 'y'])
 
 def direction_from_pos(direction, pos):
 	delta = {
@@ -45,13 +47,20 @@ class GameState(object):
 			self.user_attr = json.loads(user_attr)
 		else:
 			self.user_attr = {}
+		self.pos_obj = {}
+		self.user_pos = {}
 		if pos_val is not None:
 			pos_obj = json.loads(pos_val, use_decimal=True)
-			self.pos_obj = dict((tuple(map(int, k.split(","))), v) for k, v in pos_obj.iteritems())
-			self.user_pos = dict((v['i'], k) for k, v in self.pos_obj.iteritems() if v['t'] == CONSTANTS.get('CELL_ROBOT'))
+			def_obj = {'t':None, 'i':None, 'x':None, 'y':None}
+			for k, v in pos_obj.iteritems():
+				_v = dict(def_obj)
+				_v.update(v)
+				obj = GridObj(**_v)
+				pos = tuple(map(int, k.split(",")))
+				self.pos_obj[pos] = obj
+				if obj.t == CONSTANTS.get('CELL_ROBOT'):
+					self.user_pos[obj.i] = k
 		else:
-			self.pos_obj = {}
-			self.user_pos = {}
 			self.init_resources()
 
 	def init_resources(self):
@@ -65,7 +74,7 @@ class GameState(object):
 		if pos is None:
 			raise GridLangException("Could not locate empty space for you! Sorry! It will try again next tick.")
 		self.user_pos[user_id] = pos
-		self.pos_obj[pos] = {'t': CONSTANTS.get("CELL_ROBOT"), 'i': user_id, 'x':pos[0], 'y':pos[1]}
+		self.pos_obj[pos] = GridObj(t=CONSTANTS.get("CELL_ROBOT"), i=user_id, x=pos[0], y=pos[1])
 
 	def randomly_spawn_resource(self):
 		for i in xrange(4):
@@ -75,23 +84,23 @@ class GameState(object):
 	def spawn_resource(self):
 		pos = self.get_open_position()
 		if pos is not None:
-			self.pos_obj[pos] = {'t':CONSTANTS.get("CELL_RESOURCE"), 'x':pos[0], 'y':pos[1]}
+			self.pos_obj[pos] = GridObj(t=CONSTANTS.get("CELL_RESOURCE"), i=None, x=pos[0], y=pos[1])
 	
 	def spawn_rock(self):
 		pos = self.get_open_position()
 		if pos is not None:
-			self.pos_obj[pos] = {'t':CONSTANTS.get("CELL_ROCK"), 'x':pos[0], 'y':pos[1]}
+			self.pos_obj[pos] = GridObj(t=CONSTANTS.get("CELL_ROCK"), i=None, x=pos[0], y=pos[1])
 	
 	def obj_at(self, x, y):
 		pos = (x, y)
 		if pos in self.pos_obj:
-			return self.pos_obj[pos]['t']
+			return self.pos_obj[pos].t
 		return CONSTANTS.get('CELL_EMPTY')
 
 	def user_at(self, x, y):
 		pos = (x, y)
-		if pos in self.pos_obj and self.pos_obj[pos]['t'] == CONSTANTS.get("CELL_ROBOT"):
-			return self.pos_obj[pos]['i']
+		if pos in self.pos_obj and self.pos_obj[pos].t == CONSTANTS.get("CELL_ROBOT"):
+			return self.pos_obj[pos].i
 	
 	def get_open_position(self):
 		for i in xrange(1000):
@@ -112,16 +121,16 @@ class GameState(object):
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == 0:
 			self.user_pos[user_id] = new_pos
-			self.pos_obj[new_pos] = {'i':user_id, 't':CONSTANTS.get("CELL_ROBOT"), 'x':new_pos[0], 'y':new_pos[1]}
+			self.pos_obj[new_pos] = GridObj(t=CONSTANTS.get("CELL_ROBOT"), i=user_id, x=new_pos[0], y=new_pos[1])
 			del self.pos_obj[old_pos]
 			return 1
 		return 0
 
 	def do_obj_move(self, pos, direction):
 		new_pos = direction_from_pos(direction, pos)
-		obj = dict(self.pos_obj[pos])
-		obj['x'] = new_pos[0]
-		obj['y'] = new_pos[1]
+		obj = self.pos_obj[pos]
+		obj.x = new_pos[0]
+		obj.y = new_pos[1]
 		self.pos_obj[new_pos] = obj
 		del self.pos_obj[pos]
 	
@@ -168,7 +177,7 @@ class GameState(object):
 		if target is not None:
 			self.user_history(target, "YOUR BOT", "WAS ATTACKED", 0)
 			self.kill_user(target)
-			self.pos_obj[new_pos] = {'t':CONSTANTS.get("CELL_RESOURCE"), 'x':new_pos[0], 'y':new_pos[1]}
+			self.pos_obj[new_pos] = GridObj(t=CONSTANTS.get("CELL_RESOURCE"), i=None, x=new_pos[0], y=new_pos[1])
 			return 1
 		return 0
 
@@ -255,7 +264,7 @@ class GameState(object):
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("user_attr", json.dumps(self.user_attr))
-		pos_obj = dict(("{0},{1}".format(*k), v) for k,v in self.pos_obj.iteritems())
+		pos_obj = dict(("{0},{1}".format(*k), dict(v._asdict())) for k,v in self.pos_obj.iteritems())
 		redis.set("position_map", json.dumps(pos_obj))
 
 
