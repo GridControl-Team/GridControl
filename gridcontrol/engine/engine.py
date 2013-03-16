@@ -57,6 +57,8 @@ class GameState(object):
 				_v.update(v)
 				obj = GridObj(**_v)
 				pos = tuple(map(int, k.split(",")))
+				obj.x = int(obj.x)
+				obj.y = int(obj.y)
 				self.pos_obj[pos] = obj
 				if obj.t == CONSTANTS.get('CELL_ROBOT'):
 					self.user_pos[obj.i] = k
