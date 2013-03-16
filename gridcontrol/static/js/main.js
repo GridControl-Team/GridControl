@@ -76,7 +76,11 @@
 
 	var screen = GC.Screen.prototype;
 
+	var last_panic = null;
+	var panic_timer = null;
+
 	screen.raise_exception = function(msg) {
+		last_panic = new Date();
 		var $panic = $("#grid_panic");
 		$("pre", $panic).text(msg);
 		$panic.slideDown();
