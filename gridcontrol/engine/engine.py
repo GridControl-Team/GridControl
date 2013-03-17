@@ -52,14 +52,16 @@ class GameState(object):
 		if pos_val is not None:
 			pos_obj = json.loads(pos_val, use_decimal=True)
 			def_obj = {'t':None, 'i':None, 'x':None, 'y':None}
-			for k, v in pos_obj.iteritems():
+			for v in pos_obj:
 				_v = dict(def_obj)
 				_v.update(v)
 				obj = GridObj(**_v)
-				pos = tuple(map(int, k.split(",")))
+				pos = (obj.x, obj.y)
 				self.pos_obj[pos] = obj
 				if obj.t == CONSTANTS.get('CELL_ROBOT'):
 					self.user_pos[obj.i] = pos
+					if obj.i == 1:
+						print "In load: {0}".format(repr(pos))
 		else:
 			self.init_resources()
 
@@ -123,14 +125,20 @@ class GameState(object):
 			self.user_pos[user_id] = new_pos
 			self.pos_obj[new_pos] = GridObj(t=CONSTANTS.get("CELL_ROBOT"), i=user_id, x=new_pos[0], y=new_pos[1])
 			del self.pos_obj[old_pos]
+			if user_id == 1:
+				print "after move: old:{0} new:{1} user_pos:{2}".format(repr(old_pos), repr(new_pos), repr(self.user_pos[1]))
 			return 1
 		return 0
 
 	def do_obj_move(self, pos, direction):
 		new_pos = direction_from_pos(direction, pos)
-		obj = self.pos_obj[pos]
-		obj.x = new_pos[0]
-		obj.y = new_pos[1]
+		old_obj = self.pos_obj[pos]
+		obj = GridObj(
+			t = old_obj.t,
+			i = old_obj.i,
+			x = new_pos[0],
+			y = new_pos[1],
+		)
 		self.pos_obj[new_pos] = obj
 		del self.pos_obj[pos]
 	
@@ -261,10 +269,37 @@ class GameState(object):
 	def clear_status(self, user_id):
 		self.set_user_attr(user_id, "status", 0)
 	
+	def get_map_for(self, user_id):
+		map_r = 5
+		if user_id in self.user_pos:
+			x, y = self.user_pos[user_id]
+			m = []
+			for y2 in xrange(y-map_r, y+map_r + 1):
+				l = []
+				for x2 in xrange(x-map_r, x+map_r + 1):
+					y3 = y2 % self.map_h
+					x3 = x2 % self.map_w
+					pos = (x3, y3)
+					if pos in self.pos_obj:
+						obj = self.pos_obj[pos]
+						if obj.t == 3:
+							l.append({'t':3, 'i':obj.i})
+						else:
+							l.append({'t':obj.t})
+					else:
+						l.append({'t':0})
+				m.append(l)
+			if user_id == 1:
+				print "user at: {0}, {1}".format(x, y)
+			return m
+		else:
+			return []
+	
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("user_attr", json.dumps(self.user_attr))
-		pos_obj = dict(("{0},{1}".format(*k), dict(v._asdict())) for k,v in self.pos_obj.iteritems())
+		pos_obj = [v._asdict() for k,v in self.pos_obj.iteritems()]
+		print "in persist: {0}".format(repr(self.user_pos[1]))
 		redis.set("position_map", json.dumps(pos_obj))
 
 
@@ -391,6 +426,15 @@ class GridControlEngine(object):
 		key = "user_vm_{0}".format(user_id)
 		self.redis.delete(key)
 
+	def set_user_view(self, user_id, gamestate):
+		key = "user_msg_{0}".format(user_id)
+		user_map = gamestate.get_map_for(user_id)
+		val = json.dumps({
+			'type': 'map',
+			'content': user_map,
+		})
+		self.redis.publish(key, val)
+
 	def reparse_all_users(self):
 		active_users = self.redis.smembers("active_users")
 		if active_users is None:
@@ -422,7 +466,7 @@ class GridControlEngine(object):
 
 	def tick_user(self, user_id, gamestate):
 		OP_LIMIT = 400
-		print "TICK FOR USER {0}".format(user_id)
+		#print "TICK FOR USER {0}".format(user_id)
 		user_vm, user_code = self.thaw_user(user_id)
 
 		if user_code is None:
@@ -458,9 +502,14 @@ class GridControlEngine(object):
 	
 	def do_tick(self):
 		"""Activate all active users"""
+		global_lock = self.redis.setnx("global_lock", "#yolo")
+		if not global_lock:
+			print "execution locked"
+			return False
 		active_users = self.redis.smembers("active_users")
 		if active_users is None:
-			return
+			return True
+		active_users = map(int, active_users)
 
 		position_map_raw = self.redis.get("position_map")
 		user_attr_raw = self.redis.get("user_attr")
@@ -474,6 +523,7 @@ class GridControlEngine(object):
 		for user_id in active_users:
 			if gamestate.is_user_dead(user_id):
 				gamestate.clear_status(user_id)
+				gamestate.spawn_user(user_id)
 				continue
 			try:
 				if user_id not in gamestate.user_pos:
@@ -489,7 +539,10 @@ class GridControlEngine(object):
 					msg = "{0}\n\n{1}".format(e.traceback, e.message)
 				else:
 					msg = e.message
-				self.redis.publish(channel, msg)
+				self.redis.publish(channel, json.dumps({
+					'type': 'exception',
+					'content': msg,
+				}))
 			except Exception as e:
 				print "USER {0} HAS UNCAUGHT ISSUE".format(user_id)
 				exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -498,8 +551,14 @@ class GridControlEngine(object):
 				msg = "{0}\n\n{1}".format("GRIDLANG Exception", e.message)
 				self.redis.publish(channel, msg)
 
+		for user_id in active_users:
+			self.set_user_view(user_id, gamestate)
+
 		gamestate.persist(self.redis)
+		self.emit_tick()
+		self.redis.delete("global_lock")
+		return True
 	
 	def emit_tick(self):
-		print "EMIT TICK TO STREAMING CLIENTS"
+		#print "EMIT TICK TO STREAMING CLIENTS"
 		i = self.redis.publish("global_tick", "tick")

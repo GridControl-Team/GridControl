@@ -45,8 +45,9 @@ def tick_all_users():
 		exe_limit = settings.GRIDCONTROL_EXE_LIMIT,
 		reg_limit = settings.GRIDCONTROL_REG_LIMIT,
 	)
-	gce.do_tick()
-	gce.emit_tick()
+	r = gce.do_tick()
+	if r:
+		tick_all_users.apply_async(args=[], countdown=1)
 
 @task(name='gridcontrol.engine.reparse_all_users')
 def reparse_all_users():

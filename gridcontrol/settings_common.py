@@ -169,8 +169,7 @@ from datetime import timedelta
 CELERYBEAT_SCHEDULE = {
 	"game_tick": {
 		"task": "gridcontrol.engine.tick_all_users",
-		#"schedule" : crontab(minute='*/1'),
-		"schedule" : timedelta(seconds=2),
+		"schedule" : crontab(minute='*/1'),
 		"args": None,
 	},
 }
