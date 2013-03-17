@@ -89,11 +89,12 @@ class StreamComm(SocketConnection):
 		if msg.kind == 'message':
 			if msg.channel == 'global_tick':
 				if msg.body == 'tock':
-					self.push_usernames()
-					self.push_userscores()
-					self.push_user_history()
+					pass
 			elif msg.channel == 'user_msg_{0}'.format(self.userid):
 				self.push_user_update(msg.body)
+				self.push_usernames()
+				self.push_userscores()
+				self.push_user_history()
 
 	def push_usernames(self):
 		msg = {
