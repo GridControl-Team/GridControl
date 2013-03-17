@@ -51,12 +51,10 @@ class GameState(object):
 		self.user_pos = {}
 		if pos_val is not None:
 			pos_obj = json.loads(pos_val, use_decimal=True)
-			def_obj = {'t':None, 'i':None, 'x':None, 'y':None}
 			for v in pos_obj:
-				_v = dict(def_obj)
-				_v.update(v)
-				obj = GridObj(**_v)
-				pos = (obj.x, obj.y)
+				x, y, t, i = v
+				obj = GridObj(t=t, i=i, x=x, y=y)
+				pos = (x, y)
 				self.pos_obj[pos] = obj
 				if obj.t == CONSTANTS.get('CELL_ROBOT'):
 					self.user_pos[obj.i] = pos
@@ -298,7 +296,7 @@ class GameState(object):
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("user_attr", json.dumps(self.user_attr))
-		pos_obj = [v._asdict() for k,v in self.pos_obj.iteritems()]
+		pos_obj = [(v.x, v.y, v.t, v.i) for k,v in self.pos_obj.iteritems()]
 		print "in persist: {0}".format(repr(self.user_pos[1]))
 		redis.set("position_map", json.dumps(pos_obj))
 
