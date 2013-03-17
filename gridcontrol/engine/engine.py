@@ -58,8 +58,6 @@ class GameState(object):
 				self.pos_obj[pos] = obj
 				if obj.t == CONSTANTS.get('CELL_ROBOT'):
 					self.user_pos[obj.i] = pos
-					if obj.i == 1:
-						print "In load: {0}".format(repr(pos))
 		else:
 			self.init_resources()
 
@@ -123,8 +121,6 @@ class GameState(object):
 			self.user_pos[user_id] = new_pos
 			self.pos_obj[new_pos] = GridObj(t=CONSTANTS.get("CELL_ROBOT"), i=user_id, x=new_pos[0], y=new_pos[1])
 			del self.pos_obj[old_pos]
-			if user_id == 1:
-				print "after move: old:{0} new:{1} user_pos:{2}".format(repr(old_pos), repr(new_pos), repr(self.user_pos[1]))
 			return 1
 		return 0
 
@@ -287,8 +283,6 @@ class GameState(object):
 					else:
 						l.append({'t':0})
 				m.append(l)
-			if user_id == 1:
-				print "user at: {0}, {1}".format(x, y)
 			return m
 		else:
 			return []
@@ -297,7 +291,6 @@ class GameState(object):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("user_attr", json.dumps(self.user_attr))
 		pos_obj = [(v.x, v.y, v.t, v.i) for k,v in self.pos_obj.iteritems()]
-		print "in persist: {0}".format(repr(self.user_pos[1]))
 		redis.set("position_map", json.dumps(pos_obj))
 
 
