@@ -52,7 +52,11 @@ class GameState(object):
 		if pos_val is not None:
 			pos_obj = json.loads(pos_val, use_decimal=True)
 			for v in pos_obj:
-				x, y, t, i = v
+				if len(v) == 4:
+					x, y, t, i = v
+				else:
+					x, y, t = v
+					i = None
 				obj = GridObj(t=t, i=i, x=x, y=y)
 				pos = (x, y)
 				self.pos_obj[pos] = obj
@@ -114,6 +118,9 @@ class GameState(object):
 		self.engine.add_history(user_id, cmd, val, success)
 	
 	def do_user_move(self, user_id, direction):
+		return self._do_user_move(user_id, direction)
+	
+	def _do_user_move(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -5)
 		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
@@ -125,6 +132,9 @@ class GameState(object):
 		return 0
 
 	def do_obj_move(self, pos, direction):
+		return self._do_obj_move(pos, direction)
+	
+	def _do_obj_move(self, pos, direction):
 		new_pos = direction_from_pos(direction, pos)
 		old_obj = self.pos_obj[pos]
 		obj = GridObj(
@@ -150,6 +160,9 @@ class GameState(object):
 		return self.obj_at(*new_pos)
 
 	def do_user_pull(self, user_id, direction):
+		return self._do_user_pull(user_id, direction)
+	
+	def _do_user_pull(self, user_id, direction):
 		old_pos = list(self.user_pos.get(user_id))
 		new_pos = direction_from_pos(direction, old_pos)
 		if self.obj_at(*new_pos) == CONSTANTS.get("CELL_RESOURCE"):
@@ -159,6 +172,9 @@ class GameState(object):
 		return 0
 
 	def do_user_push(self, user_id, direction):
+		return self._do_user_push(user_id, direction)
+	
+	def _do_user_push(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -10)
 		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
@@ -172,6 +188,9 @@ class GameState(object):
 		return 0
 
 	def do_user_punch(self, user_id, direction):
+		return self._do_user_punch(user_id, direction)
+	
+	def _do_user_punch(self, user_id, direction):
 		self.incr_user_attr(user_id, "charge", -10)
 		old_pos = self.user_pos[user_id]
 		new_pos = direction_from_pos(direction, old_pos)
@@ -184,6 +203,9 @@ class GameState(object):
 		return 0
 
 	def do_user_chargeup(self, user_id, val):
+		return self._do_user_chargeup(user_id, val)
+	
+	def _do_user_chargeup(self, user_id, val):
 		charge = self.get_user_attr(user_id, "charge")
 		resources = self.get_user_attr(user_id, "resources")
 		try:
@@ -214,6 +236,9 @@ class GameState(object):
 		return ret
 
 	def do_user_pewpew(self, user_id, direction):
+		return self._do_user_pewpew(user_id, direction)
+	
+	def _do_user_pewpew(self, user_id, direction):
 		charge = self.get_user_attr(user_id, "charge")
 		steps = charge / 10
 		if steps < 1:
@@ -232,6 +257,9 @@ class GameState(object):
 		return 1
 
 	def do_user_selfdestruct(self, user_id):
+		return self._do_user_selfdestruct(user_id)
+	
+	def _do_user_selfdestruct(self, user_id):
 		self.kill_user(user_id)
 		return 1
 
@@ -290,7 +318,7 @@ class GameState(object):
 	def persist(self, redis):
 		redis.set("users_data", json.dumps(self.user_pos))
 		redis.set("user_attr", json.dumps(self.user_attr))
-		pos_obj = [(v.x, v.y, v.t, v.i) for k,v in self.pos_obj.iteritems()]
+		pos_obj = [(v.x, v.y, v.t, v.i) if v.i else (v.x, v.y, v.t) for k,v in self.pos_obj.iteritems()]
 		redis.set("position_map", json.dumps(pos_obj))
 
 
@@ -509,19 +537,34 @@ class GridControlEngine(object):
 
 		# tick environment
 		gamestate.randomly_spawn_resource()
-		
-		# tick all users
+
+		skip_users = []
+
+		# ressurect dead users, place new ones
 		for user_id in active_users:
-			if gamestate.is_user_dead(user_id):
-				gamestate.clear_status(user_id)
-				gamestate.spawn_user(user_id)
-				continue
 			try:
-				if user_id not in gamestate.user_pos:
+				if gamestate.is_user_dead(user_id):
+					gamestate.clear_status(user_id)
+					gamestate.spawn_user(user_id)
+					skip_users.append(active_users)
+				elif user_id not in gamestate.user_pos:
 					# new user, place them on map somewhere
 					gamestate.spawn_user(user_id)
 					# also restart their vm
 					self.clear_user_vm(user_id)
+			except GridLangException as e:
+				channel = "user_msg_{0}".format(user_id)
+				msg = e.message
+				self.redis.publish(channel, json.dumps({
+					'type': 'exception',
+					'content': msg,
+				}))
+
+		# tick all users
+		for user_id in active_users:
+			if user_id in skip_users:
+				continue
+			try:
 				self.tick_user(user_id, gamestate)
 			except GridLangException as e:
 				print "USER {0} HAD VM ISSUE".format(user_id)
